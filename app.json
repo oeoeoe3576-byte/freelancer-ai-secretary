@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "프리랜서 AI 비서",
+    "slug": "freelancer-ai-secretary",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.choiveler.freelancersecretary"
+    },
+    "android": {
+      "package": "com.choiveler.freelancersecretary"
+    }
+  }
+}
