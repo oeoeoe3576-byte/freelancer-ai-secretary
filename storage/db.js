@@ -18,7 +18,8 @@ function sanitize(parsed) {
 }
 
 function migrateFromV1(oldEvents) {
-  const brand = { id: LEGACY_BRAND_ID, name: '기존 일정', color: DEFAULT_BRAND_COLOR, createdAt: Date.now() };
+  // pendingRename: true - 실제 브랜드명을 모르니 앱에서 사용자에게 입력을 요청한다(App.js의 마이그레이션 안내 화면)
+  const brand = { id: LEGACY_BRAND_ID, name: '기존 일정', color: DEFAULT_BRAND_COLOR, createdAt: Date.now(), pendingRename: true };
   const project = { id: LEGACY_PROJECT_ID, brandId: LEGACY_BRAND_ID, name: '기존 일정', memo: '', createdAt: Date.now() };
   const events = oldEvents.map((e, i) => ({
     id: e.id ? String(e.id) : `legacy-${Date.now()}-${i}`,

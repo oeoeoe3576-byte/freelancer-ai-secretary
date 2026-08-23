@@ -15,6 +15,7 @@ import BrandFormModal from './components/BrandFormModal';
 import ProjectFormModal from './components/ProjectFormModal';
 import EventDetailModal from './components/EventDetailModal';
 import ConfirmModal from './components/ConfirmModal';
+import MigrationNamePrompt from './components/MigrationNamePrompt';
 
 function newId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -33,6 +34,7 @@ export default function App() {
   const [projectForm, setProjectForm] = useState(null); // { mode, initial, brand, onSaved }
   const [viewEventId, setViewEventId] = useState(null);
   const [confirm, setConfirm] = useState(null); // { title, message, confirmLabel, danger, onConfirm }
+  const [migrationPromptSkipped, setMigrationPromptSkipped] = useState(false);
 
   // 기존 데이터 불러오기 + 필요 시 v1 -> v2(브랜드/프로젝트 구조) 자동 마이그레이션
   useEffect(() => {
@@ -54,6 +56,13 @@ export default function App() {
     brand: brands.find(b => b.id === e.brandId) || null,
     project: projects.find(p => p.id === e.projectId) || null,
   })), [events, brands, projects]);
+
+  // 마이그레이션으로 만들어졌지만 아직 실제 이름을 안 정한 브랜드가 있으면 안내 화면을 띄운다
+  const pendingNameBrand = brands.find(b => b.pendingRename) || null;
+  const showMigrationPrompt = !!pendingNameBrand && !migrationPromptSkipped;
+  const saveMigrationName = (name, color) => {
+    setBrands(prev => prev.map(b => (b.id === pendingNameBrand.id ? { ...b, name, color, pendingRename: false } : b)));
+  };
 
   // ---------- 일정 ----------
   const openAddEvent = (presetBrandId, presetProjectId) => {
@@ -102,7 +111,8 @@ export default function App() {
   };
   const saveBrandForm = (data) => {
     if (data.id) {
-      setBrands(prev => prev.map(b => (b.id === data.id ? { ...b, name: data.name, color: data.color } : b)));
+      // 어느 경로로 수정하든(마이그레이션 안내 화면 포함) 이름을 정해주면 "이름 미정" 상태는 해제한다
+      setBrands(prev => prev.map(b => (b.id === data.id ? { ...b, name: data.name, color: data.color, pendingRename: false } : b)));
       brandForm?.onSaved?.(data);
     } else {
       const b = { id: newId('b'), name: data.name, color: data.color, createdAt: Date.now() };
@@ -279,6 +289,14 @@ export default function App() {
         onToggleDone={() => toggleDone(viewEvent.id)}
         onEdit={() => { const ev = viewEvent; setViewEventId(null); openEditEvent(ev); }}
         onDelete={() => requestDeleteEvent(viewEvent)}
+      />
+
+      <MigrationNamePrompt
+        visible={showMigrationPrompt}
+        brand={pendingNameBrand}
+        eventCount={pendingNameBrand ? events.filter(e => e.brandId === pendingNameBrand.id).length : 0}
+        onSave={saveMigrationName}
+        onSkip={() => setMigrationPromptSkipped(true)}
       />
 
       <ConfirmModal
