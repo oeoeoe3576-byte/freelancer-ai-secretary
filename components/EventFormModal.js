@@ -2,20 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import ModalOverlay from './ModalOverlay';
 import BrandProjectPicker from './BrandProjectPicker';
+import ColorPicker from './ColorPicker';
 import { theme } from '../utils/theme';
 import { EVENT_TYPES } from '../utils/constants';
 import { keyOf, isValidDateKey } from '../utils/date';
 
 // 일정 추가/수정 공용 폼. 브랜드 -> 프로젝트를 먼저 고르지 않으면 저장할 수 없다.
+// 달력에서 눌러 수정하는 흐름도 이 모달을 거치므로, 브랜드 색상도 여기서 바로 바꿀 수 있게 한다.
 export default function EventFormModal({
   visible, mode, initial, brands, projects,
-  onSave, onClose, onAddBrand, onAddProject,
+  onSave, onClose, onAddBrand, onAddProject, onChangeBrandColor,
 }) {
   const [brandId, setBrandId] = useState('');
   const [projectId, setProjectId] = useState('');
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(keyOf(new Date()));
   const [type, setType] = useState('업무');
+  const [colorOpen, setColorOpen] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -24,9 +27,11 @@ export default function EventFormModal({
     setTitle(initial?.title || '');
     setDate(initial?.date || keyOf(new Date()));
     setType(initial?.type || '업무');
+    setColorOpen(false);
   }, [visible, initial]);
 
-  const changeBrand = (id) => { setBrandId(id); setProjectId(''); };
+  const changeBrand = (id) => { setBrandId(id); setProjectId(''); setColorOpen(false); };
+  const selectedBrand = brands.find(b => b.id === brandId);
 
   const save = () => {
     if (brands.length === 0) { Alert.alert('먼저 브랜드를 추가해주세요.'); return; }
@@ -53,6 +58,19 @@ export default function EventFormModal({
         onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
       />
 
+      {selectedBrand && (
+        <View style={styles.colorSection}>
+          <TouchableOpacity onPress={() => setColorOpen(o => !o)} style={styles.colorToggle}>
+            <View style={[styles.colorDot, { backgroundColor: selectedBrand.color }]} />
+            <Text style={styles.colorToggleText}>{selectedBrand.name} 브랜드 색상 변경</Text>
+            <Text style={styles.colorToggleIcon}>{colorOpen ? '▲' : '▼'}</Text>
+          </TouchableOpacity>
+          {colorOpen && (
+            <ColorPicker value={selectedBrand.color} onChange={(color) => onChangeBrandColor(selectedBrand.id, color)} />
+          )}
+        </View>
+      )}
+
       <Text style={styles.label}>일정 제목</Text>
       <TextInput value={title} onChangeText={setTitle} placeholder="예) 기획안 제출" style={styles.input} />
       <Text style={styles.label}>날짜 (YYYY-MM-DD)</Text>
@@ -76,6 +94,11 @@ export default function EventFormModal({
 
 const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '800', color: theme.text, marginBottom: 12 },
+  colorSection: { marginTop: 6, marginBottom: 4, backgroundColor: '#F8F9FB', borderRadius: theme.radius.sm, padding: 10 },
+  colorToggle: { flexDirection: 'row', alignItems: 'center' },
+  colorDot: { width: 12, height: 12, borderRadius: 6, marginRight: 8 },
+  colorToggleText: { flex: 1, fontSize: 12.5, fontWeight: '700', color: theme.textSub },
+  colorToggleIcon: { fontSize: 11, color: theme.textFaint },
   label: { fontSize: 12, fontWeight: '800', color: theme.textSub, marginBottom: 8, marginTop: 8 },
   input: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.sm, padding: 12, marginBottom: 4, fontSize: 14 },
   typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

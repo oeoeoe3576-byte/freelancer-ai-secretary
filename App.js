@@ -96,6 +96,10 @@ export default function App() {
   // ---------- 브랜드 ----------
   const openAddBrand = (onSaved) => setBrandForm({ mode: 'add', initial: null, onSaved });
   const openEditBrand = (brand) => setBrandForm({ mode: 'edit', initial: brand, onSaved: null });
+  // 일정 추가/수정 화면(달력에서 눌러 들어온 흐름 포함)에서 바로 브랜드 색상을 바꿀 수 있게 하는 단축 경로
+  const updateBrandColorInline = (brandId, color) => {
+    setBrands(prev => prev.map(b => (b.id === brandId ? { ...b, color } : b)));
+  };
   const saveBrandForm = (data) => {
     if (data.id) {
       setBrands(prev => prev.map(b => (b.id === data.id ? { ...b, name: data.name, color: data.color } : b)));
@@ -245,6 +249,7 @@ export default function App() {
         onClose={() => setEventForm(null)}
         onAddBrand={openAddBrand}
         onAddProject={openAddProject}
+        onChangeBrandColor={updateBrandColorInline}
       />
 
       <BrandFormModal

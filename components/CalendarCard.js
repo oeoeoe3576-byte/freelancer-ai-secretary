@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useMemo, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, PanResponder } from 'react-native';
 import { theme } from '../utils/theme';
 import { WEEK, keyOf, addDays, startOfWeek, monthLabel, dayLabel } from '../utils/date';
 
@@ -32,6 +32,18 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
 
   const goToday = () => { const d = new Date(); onCursorChange(d); onSelectDate(keyOf(d)); };
 
+  // 달력을 좌우로 스와이프해도 이전/다음 달(주)로 넘어가도록 지원 (버튼 탭과 동시에 사용 가능)
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gesture) =>
+        Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.5,
+      onPanResponderRelease: (evt, gesture) => {
+        if (gesture.dx <= -40) move(1);
+        else if (gesture.dx >= 40) move(-1);
+      },
+    })
+  ).current;
+
   return (
     <View>
       <View style={styles.header}>
@@ -48,6 +60,7 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
         ))}
       </View>
 
+      <View {...panResponder.panHandlers}>
       {view === 'month' && (
         <>
           <View style={styles.weekHeader}>{WEEK.map(w => <Text key={w} style={styles.weekHeadText}>{w}</Text>)}</View>
@@ -89,6 +102,7 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
           })}
         </View>
       )}
+      </View>
     </View>
   );
 }
