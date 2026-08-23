@@ -1,28 +1,25 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
-import { hexToRgba } from '../utils/colors';
 import { formatWon } from '../utils/ledger';
 
-// 가계부 목록의 한 줄. 프로젝트당 금액 1개 기준이며, 정산 여부를 바로 토글할 수 있다.
-export default function LedgerItem({ project, brand, onPress, onToggleSettled }) {
+// 가계부 목록의 한 줄. 전체가 하나의 탭 대상이며(중첩 버튼으로 인한 오작동 방지),
+// 누르면 프로젝트 상세로 이동해서 그곳의 정산 버튼으로 토글한다.
+export default function LedgerItem({ project, brand, onPress }) {
   const color = brand?.color || theme.primary;
   return (
-    <TouchableOpacity onPress={onPress} style={styles.row}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.row}>
       <View style={[styles.bar, { backgroundColor: color }]} />
       <View style={styles.body}>
         <Text style={styles.brand} numberOfLines={1}>{brand?.name || '브랜드 없음'}</Text>
         <Text style={styles.name} numberOfLines={1}>{project.name}</Text>
         <Text style={styles.amount}>{formatWon(project.amount)}</Text>
       </View>
-      <TouchableOpacity
-        onPress={onToggleSettled}
-        style={[styles.badge, project.settled ? styles.badgeDone : { backgroundColor: hexToRgba(color, 0.14) }]}
-      >
-        <Text style={[styles.badgeText, project.settled ? styles.badgeTextDone : { color }]}>
-          {project.settled ? '정산완료' : '정산대기'}
+      <View style={[styles.badge, project.settled ? styles.badgeDone : styles.badgePending]}>
+        <Text style={[styles.badgeText, project.settled ? styles.badgeTextDone : styles.badgeTextPending]}>
+          {project.settled ? '✓ 정산완료' : '정산대기'}
         </Text>
-      </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -34,8 +31,10 @@ const styles = StyleSheet.create({
   brand: { fontSize: 11.5, fontWeight: '700', color: theme.textSub },
   name: { fontSize: 15, fontWeight: '800', color: theme.text, marginTop: 2 },
   amount: { fontSize: 14, fontWeight: '700', color: theme.text, marginTop: 4 },
-  badge: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, marginRight: 12 },
+  badge: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, marginRight: 12 },
+  badgePending: { backgroundColor: '#FEF3C7' },
   badgeDone: { backgroundColor: '#DCFCE7' },
   badgeText: { fontSize: 11.5, fontWeight: '800' },
+  badgeTextPending: { color: '#92400E' },
   badgeTextDone: { color: '#15803D' },
 });

@@ -2,6 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, PanResponder } from 'react-native';
 import { theme } from '../utils/theme';
 import { WEEK, keyOf, addDays, startOfWeek, monthLabel, dayLabel } from '../utils/date';
+import EventListItem from './EventListItem';
 
 function EventChip({ e }) {
   const color = e.brand?.color || theme.primary;
@@ -14,8 +15,9 @@ function EventChip({ e }) {
   );
 }
 
-// 월/주 달력. 날짜를 누르면 완료 처리 등 동작 없이 선택만 되고, 상세 목록은 바깥(DayDetailPanel)에서 보여준다.
-export default function CalendarCard({ cursor, onCursorChange, view, onViewChange, grouped, selectedDate, onSelectDate, todayKey }) {
+// 월/주/일 달력. 날짜를 누르면 완료 처리 등 동작 없이 선택만 되고, 상세 목록은 바깥(DayDetailPanel)에서 보여준다.
+// (일 보기에서는 해당 날짜 일정 목록을 이 컴포넌트 안에서 바로 보여준다.)
+export default function CalendarCard({ cursor, onCursorChange, view, onViewChange, grouped, selectedDate, onSelectDate, todayKey, onOpenEvent }) {
   const monthCells = useMemo(() => {
     const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
     const start = addDays(first, -first.getDay());
@@ -26,8 +28,10 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
   const move = (n) => {
     const d = new Date(cursor);
     if (view === 'month') d.setMonth(d.getMonth() + n);
-    else d.setDate(d.getDate() + 7 * n);
+    else if (view === 'week') d.setDate(d.getDate() + 7 * n);
+    else d.setDate(d.getDate() + n);
     onCursorChange(d);
+    if (view === 'day') onSelectDate(keyOf(d));
   };
 
   const goToday = () => { const d = new Date(); onCursorChange(d); onSelectDate(keyOf(d)); };
@@ -44,18 +48,23 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
     })
   ).current;
 
+  const changeView = (v) => {
+    onViewChange(v);
+    if (v === 'day') onSelectDate(keyOf(cursor));
+  };
+
   return (
     <View>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => move(-1)} style={styles.nav}><Text style={styles.navText}>‹</Text></TouchableOpacity>
-        <TouchableOpacity onPress={goToday}><Text style={styles.title}>{monthLabel(cursor)}</Text></TouchableOpacity>
+        <TouchableOpacity onPress={goToday}><Text style={styles.title}>{view === 'day' ? dayLabel(cursor) : monthLabel(cursor)}</Text></TouchableOpacity>
         <TouchableOpacity onPress={() => move(1)} style={styles.nav}><Text style={styles.navText}>›</Text></TouchableOpacity>
       </View>
 
       <View style={styles.tabs}>
-        {['month', 'week'].map(v => (
-          <TouchableOpacity key={v} onPress={() => onViewChange(v)} style={[styles.tab, view === v && styles.tabOn]}>
-            <Text style={[styles.tabText, view === v && styles.tabTextOn]}>{v === 'month' ? '월' : '주'}</Text>
+        {['month', 'week', 'day'].map(v => (
+          <TouchableOpacity key={v} onPress={() => changeView(v)} style={[styles.tab, view === v && styles.tabOn]}>
+            <Text style={[styles.tabText, view === v && styles.tabTextOn]}>{v === 'month' ? '월' : v === 'week' ? '주' : '일'}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -102,6 +111,18 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
           })}
         </View>
       )}
+
+      {view === 'day' && (
+        <View>
+          {(grouped[keyOf(cursor)] || []).length === 0 ? (
+            <Text style={styles.dayEmpty}>등록된 일정이 없습니다.</Text>
+          ) : (
+            (grouped[keyOf(cursor)] || []).map(e => (
+              <EventListItem key={e.id} event={e} brand={e.brand} project={e.project} combined onPress={() => onOpenEvent(e.id)} />
+            ))
+          )}
+        </View>
+      )}
       </View>
     </View>
   );
@@ -138,4 +159,5 @@ const styles = StyleSheet.create({
   weekDateNum: { fontSize: 19, fontWeight: '800', color: theme.text },
   weekEvents: { flex: 1, gap: 5, justifyContent: 'center', paddingLeft: 4 },
   empty: { fontSize: 12, color: theme.textFaint },
+  dayEmpty: { fontSize: 13, color: theme.textFaint, textAlign: 'center', paddingVertical: 30 },
 });

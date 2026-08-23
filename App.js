@@ -7,11 +7,14 @@ import { loadData, saveData } from './storage/db';
 import { keyOf } from './utils/date';
 
 import HomeScreen from './screens/HomeScreen';
+import CalendarScreen from './screens/CalendarScreen';
+import AddScreen from './screens/AddScreen';
+import LedgerScreen from './screens/LedgerScreen';
 import BrandsScreen from './screens/BrandsScreen';
 import BrandDetailScreen from './screens/BrandDetailScreen';
 import ProjectDetailScreen from './screens/ProjectDetailScreen';
-import LedgerScreen from './screens/LedgerScreen';
 
+import TabBar from './components/TabBar';
 import EventFormModal from './components/EventFormModal';
 import BrandFormModal from './components/BrandFormModal';
 import ProjectFormModal from './components/ProjectFormModal';
@@ -29,7 +32,9 @@ export default function App() {
   const [projects, setProjects] = useState([]);
   const [events, setEvents] = useState([]);
 
-  const [route, setRoute] = useState({ screen: 'home' });
+  // 하단 탭(홈/일정/추가/가계부) + 브랜드-프로젝트 드릴다운 스택(탭과 별개로, 탭바는 계속 보인다)
+  const [activeTab, setActiveTab] = useState('home');
+  const [drill, setDrill] = useState(null); // null | {screen:'brands'} | {screen:'brandDetail', brandId} | {screen:'projectDetail', projectId}
 
   const [eventForm, setEventForm] = useState(null); // { mode, initial }
   const [brandForm, setBrandForm] = useState(null); // { mode, initial, onSaved }
@@ -65,6 +70,12 @@ export default function App() {
   const saveMigrationName = (name, color) => {
     setBrands(prev => prev.map(b => (b.id === pendingNameBrand.id ? { ...b, name, color, pendingRename: false } : b)));
   };
+
+  // ---------- 탭/드릴다운 네비게이션 ----------
+  const switchTab = (tab) => { setDrill(null); setActiveTab(tab); };
+  const openBrands = () => setDrill({ screen: 'brands' });
+  const openBrandDetail = (brandId) => setDrill({ screen: 'brandDetail', brandId });
+  const openProjectDetail = (projectId) => setDrill({ screen: 'projectDetail', projectId });
 
   // ---------- 일정 ----------
   const openAddEvent = (presetBrandId, presetProjectId) => {
@@ -141,7 +152,7 @@ export default function App() {
       onConfirm: () => {
         deleteBrandCascade(brand.id);
         setConfirm(null);
-        setRoute({ screen: 'brands' });
+        setDrill({ screen: 'brands' });
       },
     });
   };
@@ -183,7 +194,7 @@ export default function App() {
         setProjects(prev => prev.filter(p => p.id !== project.id));
         setEvents(prev => prev.filter(e => e.projectId !== project.id));
         setConfirm(null);
-        setRoute({ screen: 'brandDetail', brandId: project.brandId });
+        setDrill({ screen: 'brandDetail', brandId: project.brandId });
       },
     });
   };
@@ -193,26 +204,26 @@ export default function App() {
   let screenNode = null;
   if (!loaded) {
     screenNode = <View style={styles.loading}><Text style={styles.loadingText}>불러오는 중…</Text></View>;
-  } else if (route.screen === 'brands') {
+  } else if (drill?.screen === 'brands') {
     screenNode = (
       <BrandsScreen
         brands={brands} projects={projects} events={events}
-        onBack={() => setRoute({ screen: 'home' })}
-        onOpenBrand={(id) => setRoute({ screen: 'brandDetail', brandId: id })}
+        onBack={() => setDrill(null)}
+        onOpenBrand={openBrandDetail}
         onEditBrand={openEditBrand}
         onAddBrand={() => openAddBrand()}
       />
     );
-  } else if (route.screen === 'brandDetail') {
-    const brand = brands.find(b => b.id === route.brandId);
+  } else if (drill?.screen === 'brandDetail') {
+    const brand = brands.find(b => b.id === drill.brandId);
     if (!brand) {
-      screenNode = <MissingScreen label="브랜드를 찾을 수 없습니다." onBack={() => setRoute({ screen: 'brands' })} />;
+      screenNode = <MissingScreen label="브랜드를 찾을 수 없습니다." onBack={() => setDrill({ screen: 'brands' })} />;
     } else {
       screenNode = (
         <BrandDetailScreen
           brand={brand} projects={projects} events={events}
-          onBack={() => setRoute({ screen: 'brands' })}
-          onOpenProject={(id) => setRoute({ screen: 'projectDetail', projectId: id })}
+          onBack={() => setDrill({ screen: 'brands' })}
+          onOpenProject={openProjectDetail}
           onEditProject={openEditProject}
           onAddProject={() => openAddProject(brand.id)}
           onEditBrand={() => openEditBrand(brand)}
@@ -220,16 +231,16 @@ export default function App() {
         />
       );
     }
-  } else if (route.screen === 'projectDetail') {
-    const project = projects.find(p => p.id === route.projectId);
+  } else if (drill?.screen === 'projectDetail') {
+    const project = projects.find(p => p.id === drill.projectId);
     if (!project) {
-      screenNode = <MissingScreen label="프로젝트를 찾을 수 없습니다." onBack={() => setRoute({ screen: 'brands' })} />;
+      screenNode = <MissingScreen label="프로젝트를 찾을 수 없습니다." onBack={() => setDrill({ screen: 'brands' })} />;
     } else {
       const brand = brands.find(b => b.id === project.brandId);
       screenNode = (
         <ProjectDetailScreen
           project={project} brand={brand} events={events}
-          onBack={() => setRoute({ screen: 'brandDetail', brandId: project.brandId })}
+          onBack={() => setDrill({ screen: 'brandDetail', brandId: project.brandId })}
           onOpenEvent={setViewEventId}
           onAddEvent={() => openAddEvent(project.brandId, project.id)}
           onEditProject={() => openEditProject(project)}
@@ -238,27 +249,34 @@ export default function App() {
         />
       );
     }
-  } else if (route.screen === 'ledger') {
+  } else if (activeTab === 'calendar') {
+    screenNode = <CalendarScreen enrichedEvents={enrichedEvents} onOpenEvent={setViewEventId} />;
+  } else if (activeTab === 'add') {
+    screenNode = (
+      <AddScreen
+        brands={brands} projects={projects}
+        onAddBrand={openAddBrand}
+        onAddProject={openAddProject}
+        onCreateEvent={saveEventForm}
+        onExtract={onExtractEvents}
+      />
+    );
+  } else if (activeTab === 'ledger') {
     screenNode = (
       <LedgerScreen
         projects={projects} brands={brands}
-        onBack={() => setRoute({ screen: 'home' })}
-        onOpenProject={(id) => setRoute({ screen: 'projectDetail', projectId: id })}
-        onToggleSettled={toggleProjectSettled}
+        onOpenProject={openProjectDetail}
+        onOpenBrands={openBrands}
       />
     );
   } else {
     screenNode = (
       <HomeScreen
         brands={brands} projects={projects} enrichedEvents={enrichedEvents}
-        onAddEvent={() => openAddEvent()}
         onOpenEvent={setViewEventId}
-        onOpenBrands={() => setRoute({ screen: 'brands' })}
-        onOpenBrand={(id) => setRoute({ screen: 'brandDetail', brandId: id })}
-        onOpenLedger={() => setRoute({ screen: 'ledger' })}
+        onOpenBrands={openBrands}
+        onOpenBrand={openBrandDetail}
         onAddBrandQuick={openAddBrand}
-        onAddProjectQuick={openAddProject}
-        onExtract={onExtractEvents}
       />
     );
   }
@@ -266,7 +284,8 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="dark" />
-      {screenNode}
+      <View style={styles.body}>{screenNode}</View>
+      {loaded && <TabBar active={activeTab} onChange={switchTab} />}
 
       <EventFormModal
         visible={!!eventForm}
@@ -342,6 +361,7 @@ function MissingScreen({ label, onBack }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
+  body: { flex: 1 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: theme.textSub, fontWeight: '600' },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
