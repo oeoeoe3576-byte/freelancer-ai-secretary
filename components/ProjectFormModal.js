@@ -8,18 +8,27 @@ import { hexToRgba } from '../utils/colors';
 export default function ProjectFormModal({ visible, mode, initial, brand, onSave, onClose }) {
   const [name, setName] = useState('');
   const [memo, setMemo] = useState('');
+  const [amount, setAmount] = useState('');
 
   useEffect(() => {
     if (visible) {
       setName(initial?.name || '');
       setMemo(initial?.memo || '');
+      setAmount(initial?.amount ? String(initial.amount) : '');
     }
   }, [visible, initial]);
 
   const save = () => {
     if (!brand) { Alert.alert('브랜드를 먼저 선택해주세요.'); return; }
     if (!name.trim()) { Alert.alert('프로젝트 이름을 입력해주세요.'); return; }
-    onSave({ ...(initial || {}), brandId: brand.id, name: name.trim(), memo: memo.trim() });
+    const numericAmount = amount.replace(/[^0-9]/g, '');
+    onSave({
+      ...(initial || {}),
+      brandId: brand.id,
+      name: name.trim(),
+      memo: memo.trim(),
+      amount: numericAmount ? Number(numericAmount) : null,
+    });
   };
 
   if (!visible) return null;
@@ -34,6 +43,14 @@ export default function ProjectFormModal({ visible, mode, initial, brand, onSave
       )}
       <Text style={styles.label}>프로젝트 이름 *</Text>
       <TextInput value={name} onChangeText={setName} placeholder="예) eSIM 릴스 협찬" style={styles.input} />
+      <Text style={styles.label}>정산 금액 (선택)</Text>
+      <TextInput
+        value={amount}
+        onChangeText={t => setAmount(t.replace(/[^0-9]/g, ''))}
+        placeholder="예) 300000"
+        keyboardType="numeric"
+        style={styles.input}
+      />
       <Text style={styles.label}>메모</Text>
       <TextInput value={memo} onChangeText={setMemo} placeholder="참고 사항 (선택)" multiline style={[styles.input, styles.memo]} />
       <TouchableOpacity style={styles.primary} onPress={save}>

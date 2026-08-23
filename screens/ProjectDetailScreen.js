@@ -2,10 +2,11 @@ import React, { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import { hexToRgba } from '../utils/colors';
+import { formatWon } from '../utils/ledger';
 import AppHeader from '../components/AppHeader';
 import EventListItem from '../components/EventListItem';
 
-export default function ProjectDetailScreen({ project, brand, events, onBack, onOpenEvent, onAddEvent, onEditProject, onDeleteProject }) {
+export default function ProjectDetailScreen({ project, brand, events, onBack, onOpenEvent, onAddEvent, onEditProject, onDeleteProject, onToggleSettled }) {
   const projectEvents = useMemo(
     () => events.filter(e => e.projectId === project.id).sort((a, b) => a.date.localeCompare(b.date)),
     [events, project.id]
@@ -31,6 +32,25 @@ export default function ProjectDetailScreen({ project, brand, events, onBack, on
         <Text style={styles.projectName}>{project.name}</Text>
         {!!project.memo && <Text style={styles.memo}>{project.memo}</Text>}
         <Text style={styles.progress}>{done} / {projectEvents.length} 완료 · 남은 일정 {projectEvents.length - done}개</Text>
+
+        {!!project.amount && (
+          <View style={styles.settleRow}>
+            <View>
+              <Text style={styles.settleAmount}>{formatWon(project.amount)}</Text>
+              <Text style={[styles.settleStatus, project.settled ? styles.settledText : styles.pendingText]}>
+                {project.settled ? `정산 완료 · ${project.settledAt || ''}` : '정산 대기중'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.settleBtn, project.settled ? styles.settleBtnDone : styles.settleBtnPending]}
+              onPress={onToggleSettled}
+            >
+              <Text style={[styles.settleBtnText, project.settled && styles.settleBtnTextDone]}>
+                {project.settled ? '정산 취소' : '정산 완료 처리'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <View style={styles.sectionHead}>
@@ -62,6 +82,16 @@ const styles = StyleSheet.create({
   projectName: { fontSize: 19, fontWeight: '800', color: theme.text, marginTop: 6 },
   memo: { fontSize: 13, color: theme.textSub, marginTop: 6, lineHeight: 19 },
   progress: { fontSize: 12.5, fontWeight: '700', color: theme.text, marginTop: 10 },
+  settleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderColor: 'rgba(0,0,0,0.06)' },
+  settleAmount: { fontSize: 18, fontWeight: '800', color: theme.text },
+  settleStatus: { fontSize: 12, fontWeight: '700', marginTop: 3 },
+  settledText: { color: '#15803D' },
+  pendingText: { color: '#92400E' },
+  settleBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: theme.radius.sm },
+  settleBtnPending: { backgroundColor: theme.primary },
+  settleBtnDone: { backgroundColor: '#F3F4F6' },
+  settleBtnText: { color: '#fff', fontWeight: '800', fontSize: 12.5 },
+  settleBtnTextDone: { color: theme.text },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: theme.text },
   addBtn: { backgroundColor: theme.primary, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 12 },

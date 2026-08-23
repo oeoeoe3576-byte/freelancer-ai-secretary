@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import { keyOf, daysBetween } from '../utils/date';
+import { computeLedgerSummary, formatWon } from '../utils/ledger';
 import EventListItem from '../components/EventListItem';
 import BrandCard from '../components/BrandCard';
 import CalendarCard from '../components/CalendarCard';
@@ -10,7 +11,7 @@ import PasteExtractSection from '../components/PasteExtractSection';
 
 export default function HomeScreen({
   brands, projects, enrichedEvents,
-  onAddEvent, onOpenEvent, onOpenBrands, onOpenBrand,
+  onAddEvent, onOpenEvent, onOpenBrands, onOpenBrand, onOpenLedger,
   onAddBrandQuick, onAddProjectQuick, onExtract,
 }) {
   const [cursor, setCursor] = useState(new Date());
@@ -42,6 +43,8 @@ export default function HomeScreen({
     const s = projectStats.get(p.id) || { total: 0, done: 0 };
     return s.total === 0 || s.done < s.total;
   }).length;
+
+  const ledgerSummary = useMemo(() => computeLedgerSummary(projects, enrichedEvents), [projects, enrichedEvents]);
 
   const brandStats = useMemo(() => {
     const map = new Map();
@@ -89,6 +92,23 @@ export default function HomeScreen({
             <Text style={styles.dday}>D-{daysBetween(todayKey, e.date)}</Text>
           </TouchableOpacity>
         )) : <Text style={styles.empty}>3일 이내 마감이 없습니다.</Text>}
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.brandSectionHead}>
+          <Text style={styles.sectionTitle}>가계부</Text>
+          <TouchableOpacity onPress={onOpenLedger}><Text style={styles.link}>전체보기 ›</Text></TouchableOpacity>
+        </View>
+        <View style={styles.ledgerRow}>
+          <View style={styles.ledgerCard}>
+            <Text style={styles.ledgerNum}>{formatWon(ledgerSummary.pendingThisMonth)}</Text>
+            <Text style={styles.ledgerLabel}>이번 달 정산 예정</Text>
+          </View>
+          <View style={styles.ledgerCard}>
+            <Text style={styles.ledgerNum}>{formatWon(ledgerSummary.settledThisMonth)}</Text>
+            <Text style={styles.ledgerLabel}>이번 달 정산 완료</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -163,6 +183,10 @@ const styles = StyleSheet.create({
   deadlineTitle: { fontWeight: '700', fontSize: 14, color: theme.text, marginTop: 2 },
   dday: { fontSize: 15, fontWeight: '800', color: theme.text },
   brandSectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  ledgerRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  ledgerCard: { flex: 1, backgroundColor: '#F8F9FB', padding: 12, borderRadius: theme.radius.md },
+  ledgerNum: { fontSize: 16, fontWeight: '800', color: theme.text },
+  ledgerLabel: { fontSize: 11, color: theme.textSub, marginTop: 3 },
   link: { fontSize: 12.5, color: theme.textSub, fontWeight: '700' },
   addBrandCard: { width: 100, borderRadius: theme.radius.lg, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#C6CBD3', alignItems: 'center', justifyContent: 'center', marginRight: 4 },
   addBrandCardText: { fontSize: 12, color: theme.textSub, fontWeight: '700', textAlign: 'center' },

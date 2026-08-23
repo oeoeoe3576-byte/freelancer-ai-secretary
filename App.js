@@ -4,11 +4,13 @@ import { StatusBar } from 'expo-status-bar';
 
 import { theme } from './utils/theme';
 import { loadData, saveData } from './storage/db';
+import { keyOf } from './utils/date';
 
 import HomeScreen from './screens/HomeScreen';
 import BrandsScreen from './screens/BrandsScreen';
 import BrandDetailScreen from './screens/BrandDetailScreen';
 import ProjectDetailScreen from './screens/ProjectDetailScreen';
+import LedgerScreen from './screens/LedgerScreen';
 
 import EventFormModal from './components/EventFormModal';
 import BrandFormModal from './components/BrandFormModal';
@@ -155,14 +157,20 @@ export default function App() {
   };
   const saveProjectForm = (data) => {
     if (data.id) {
-      setProjects(prev => prev.map(p => (p.id === data.id ? { ...p, name: data.name, memo: data.memo } : p)));
+      setProjects(prev => prev.map(p => (p.id === data.id ? { ...p, name: data.name, memo: data.memo, amount: data.amount } : p)));
       projectForm?.onSaved?.(data);
     } else {
-      const p = { id: newId('p'), brandId: data.brandId, name: data.name, memo: data.memo, createdAt: Date.now() };
+      const p = { id: newId('p'), brandId: data.brandId, name: data.name, memo: data.memo, amount: data.amount, settled: false, settledAt: null, createdAt: Date.now() };
       setProjects(prev => [...prev, p]);
       projectForm?.onSaved?.(p);
     }
     setProjectForm(null);
+  };
+  // 가계부: 프로젝트당 금액 1개 기준으로 정산 완료 여부를 토글한다
+  const toggleProjectSettled = (project) => {
+    setProjects(prev => prev.map(p => (p.id === project.id
+      ? { ...p, settled: !p.settled, settledAt: !p.settled ? keyOf(new Date()) : null }
+      : p)));
   };
   const requestDeleteProject = (project) => {
     const count = events.filter(e => e.projectId === project.id).length;
@@ -226,9 +234,19 @@ export default function App() {
           onAddEvent={() => openAddEvent(project.brandId, project.id)}
           onEditProject={() => openEditProject(project)}
           onDeleteProject={() => requestDeleteProject(project)}
+          onToggleSettled={() => toggleProjectSettled(project)}
         />
       );
     }
+  } else if (route.screen === 'ledger') {
+    screenNode = (
+      <LedgerScreen
+        projects={projects} brands={brands}
+        onBack={() => setRoute({ screen: 'home' })}
+        onOpenProject={(id) => setRoute({ screen: 'projectDetail', projectId: id })}
+        onToggleSettled={toggleProjectSettled}
+      />
+    );
   } else {
     screenNode = (
       <HomeScreen
@@ -237,6 +255,7 @@ export default function App() {
         onOpenEvent={setViewEventId}
         onOpenBrands={() => setRoute({ screen: 'brands' })}
         onOpenBrand={(id) => setRoute({ screen: 'brandDetail', brandId: id })}
+        onOpenLedger={() => setRoute({ screen: 'ledger' })}
         onAddBrandQuick={openAddBrand}
         onAddProjectQuick={openAddProject}
         onExtract={onExtractEvents}
