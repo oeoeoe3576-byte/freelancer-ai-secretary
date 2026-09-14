@@ -34,6 +34,7 @@ export default function OcrApiKeyModal({ visible, initialValue, onSave, onCancel
             value={key}
             onChangeText={setKey}
             placeholder="발급받은 API 키 붙여넣기"
+            placeholderTextColor={theme.textFaint}
             style={styles.input}
             autoCapitalize="none"
             autoCorrect={false}

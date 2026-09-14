@@ -114,7 +114,7 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
             projectId={projectId}
             onChangeBrand={changeBrand}
             onChangeProject={setProjectId}
-            onAddBrand={() => onAddBrand(b => { setBrandId(b.id); setProjectId(''); })}
+            onAddBrand={() => onAddBrand((b, p) => { setBrandId(b.id); setProjectId(p.id); })}
             onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
           />
           <TouchableOpacity style={styles.photoBtn} onPress={startPhotoOcr} disabled={ocrLoading}>
@@ -129,6 +129,7 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
             value={input}
             onChangeText={setInput}
             placeholder={'예)\n8/25 기획안 전달\n8/28 1차 영상 전달\n8/31 릴스 업로드'}
+            placeholderTextColor={theme.textFaint}
             style={styles.textarea}
           />
           <TouchableOpacity style={styles.primary} onPress={run}><Text style={styles.primaryText}>일정 자동 추출</Text></TouchableOpacity>

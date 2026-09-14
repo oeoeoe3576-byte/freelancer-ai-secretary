@@ -17,6 +17,7 @@ import ProjectDetailScreen from './screens/ProjectDetailScreen';
 import TabBar from './components/TabBar';
 import EventFormModal from './components/EventFormModal';
 import BrandFormModal from './components/BrandFormModal';
+import BrandProjectFormModal from './components/BrandProjectFormModal';
 import ProjectFormModal from './components/ProjectFormModal';
 import EventDetailModal from './components/EventDetailModal';
 import ConfirmModal from './components/ConfirmModal';
@@ -38,6 +39,7 @@ export default function App() {
 
   const [eventForm, setEventForm] = useState(null); // { mode, initial }
   const [brandForm, setBrandForm] = useState(null); // { mode, initial, onSaved }
+  const [brandProjectForm, setBrandProjectForm] = useState(null); // { onSaved } - 브랜드+프로젝트 한 번에 추가
   const [projectForm, setProjectForm] = useState(null); // { mode, initial, brand, onSaved }
   const [viewEventId, setViewEventId] = useState(null);
   const [confirm, setConfirm] = useState(null); // { title, message, confirmLabel, danger, onConfirm }
@@ -118,6 +120,16 @@ export default function App() {
   // ---------- 브랜드 ----------
   const openAddBrand = (onSaved) => setBrandForm({ mode: 'add', initial: null, onSaved });
   const openEditBrand = (brand) => setBrandForm({ mode: 'edit', initial: brand, onSaved: null });
+  // 브랜드 선택 화면(일정 추가/일정 폼)에서 "새 브랜드"를 누르면 브랜드+첫 프로젝트를 한 번에 만든다.
+  const openAddBrandWithProject = (onSaved) => setBrandProjectForm({ onSaved });
+  const saveBrandProjectForm = ({ brandName, color, projectName }) => {
+    const b = { id: newId('b'), name: brandName, color, createdAt: Date.now() };
+    const p = { id: newId('p'), brandId: b.id, name: projectName, memo: '', amount: null, settled: false, settledAt: null, createdAt: Date.now() };
+    setBrands(prev => [...prev, b]);
+    setProjects(prev => [...prev, p]);
+    brandProjectForm?.onSaved?.(b, p);
+    setBrandProjectForm(null);
+  };
   // 일정 추가/수정 화면(달력에서 눌러 들어온 흐름 포함)에서 바로 브랜드 색상을 바꿀 수 있게 하는 단축 경로
   const updateBrandColorInline = (brandId, color) => {
     setBrands(prev => prev.map(b => (b.id === brandId ? { ...b, color } : b)));
@@ -255,7 +267,7 @@ export default function App() {
     screenNode = (
       <AddScreen
         brands={brands} projects={projects}
-        onAddBrand={openAddBrand}
+        onAddBrand={openAddBrandWithProject}
         onAddProject={openAddProject}
         onCreateEvent={saveEventForm}
         onExtract={onExtractEvents}
@@ -295,7 +307,7 @@ export default function App() {
         projects={projects}
         onSave={saveEventForm}
         onClose={() => setEventForm(null)}
-        onAddBrand={openAddBrand}
+        onAddBrand={openAddBrandWithProject}
         onAddProject={openAddProject}
         onChangeBrandColor={updateBrandColorInline}
       />
@@ -307,6 +319,13 @@ export default function App() {
         existingBrands={brands}
         onSave={saveBrandForm}
         onClose={() => setBrandForm(null)}
+      />
+
+      <BrandProjectFormModal
+        visible={!!brandProjectForm}
+        existingBrands={brands}
+        onSave={saveBrandProjectForm}
+        onClose={() => setBrandProjectForm(null)}
       />
 
       <ProjectFormModal

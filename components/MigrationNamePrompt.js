@@ -37,6 +37,7 @@ export default function MigrationNamePrompt({ visible, brand, eventCount, onSave
             value={name}
             onChangeText={setName}
             placeholder="예) Saily"
+            placeholderTextColor={theme.textFaint}
             style={styles.input}
             autoFocus
           />

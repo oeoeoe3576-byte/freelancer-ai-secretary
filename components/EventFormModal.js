@@ -54,7 +54,7 @@ export default function EventFormModal({
         projectId={projectId}
         onChangeBrand={changeBrand}
         onChangeProject={setProjectId}
-        onAddBrand={() => onAddBrand(b => { setBrandId(b.id); setProjectId(''); })}
+        onAddBrand={() => onAddBrand((b, p) => { setBrandId(b.id); setProjectId(p.id); })}
         onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
       />
 
@@ -72,9 +72,9 @@ export default function EventFormModal({
       )}
 
       <Text style={styles.label}>일정 제목</Text>
-      <TextInput value={title} onChangeText={setTitle} placeholder="예) 기획안 제출" style={styles.input} />
+      <TextInput value={title} onChangeText={setTitle} placeholder="예) 기획안 제출" placeholderTextColor={theme.textFaint} style={styles.input} />
       <Text style={styles.label}>날짜 (YYYY-MM-DD)</Text>
-      <TextInput value={date} onChangeText={setDate} placeholder="2026-08-25" style={styles.input} />
+      <TextInput value={date} onChangeText={setDate} placeholder="2026-08-25" placeholderTextColor={theme.textFaint} style={styles.input} />
       <Text style={styles.label}>업무 유형</Text>
       <View style={styles.typeRow}>
         {EVENT_TYPES.map(t => (

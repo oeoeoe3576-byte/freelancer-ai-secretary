@@ -26,6 +26,7 @@ export default function ColorPicker({ value, onChange }) {
           value={hexInput}
           onChangeText={t => { setHexInput(t); if (isValidHex(t)) onChange(t); }}
           placeholder="#3B82F6"
+          placeholderTextColor={theme.textFaint}
           autoCapitalize="none"
           autoCorrect={false}
           style={styles.hexInput}

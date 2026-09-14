@@ -42,17 +42,18 @@ export default function ProjectFormModal({ visible, mode, initial, brand, onSave
         </View>
       )}
       <Text style={styles.label}>프로젝트 이름 *</Text>
-      <TextInput value={name} onChangeText={setName} placeholder="예) eSIM 릴스 협찬" style={styles.input} />
+      <TextInput value={name} onChangeText={setName} placeholder="예) eSIM 릴스 협찬" placeholderTextColor={theme.textFaint} style={styles.input} />
       <Text style={styles.label}>정산 금액 (선택)</Text>
       <TextInput
         value={amount}
         onChangeText={t => setAmount(t.replace(/[^0-9]/g, ''))}
         placeholder="예) 300000"
+        placeholderTextColor={theme.textFaint}
         keyboardType="numeric"
         style={styles.input}
       />
       <Text style={styles.label}>메모</Text>
-      <TextInput value={memo} onChangeText={setMemo} placeholder="참고 사항 (선택)" multiline style={[styles.input, styles.memo]} />
+      <TextInput value={memo} onChangeText={setMemo} placeholder="참고 사항 (선택)" placeholderTextColor={theme.textFaint} multiline style={[styles.input, styles.memo]} />
       <TouchableOpacity style={styles.primary} onPress={save}>
         <Text style={styles.primaryText}>{mode === 'edit' ? '저장' : '프로젝트 추가'}</Text>
       </TouchableOpacity>

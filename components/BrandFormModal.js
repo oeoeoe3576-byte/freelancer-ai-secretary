@@ -28,7 +28,7 @@ export default function BrandFormModal({ visible, mode, initial, existingBrands,
     <ModalOverlay visible={visible} onClose={onClose} align="center">
       <Text style={styles.title}>{mode === 'edit' ? '브랜드 수정' : '새 브랜드'}</Text>
       <Text style={styles.label}>브랜드 이름 *</Text>
-      <TextInput value={name} onChangeText={setName} placeholder="예) Saily" style={styles.input} />
+      <TextInput value={name} onChangeText={setName} placeholder="예) Saily" placeholderTextColor={theme.textFaint} style={styles.input} />
       <Text style={styles.label}>브랜드 컬러</Text>
       <ColorPicker value={color} onChange={setColor} />
       <TouchableOpacity style={styles.primary} onPress={save}>
