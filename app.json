@@ -16,6 +16,15 @@
     "android": {
       "package": "com.choiveler.freelancersecretary"
     },
+    "web": {
+      "name": "프리랜서 AI 비서",
+      "shortName": "AI비서",
+      "lang": "ko",
+      "themeColor": "#22262F",
+      "backgroundColor": "#FAF7F5",
+      "display": "standalone",
+      "orientation": "portrait"
+    },
     "plugins": [
       [
         "expo-image-picker",
