@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import ModalOverlay from './ModalOverlay';
 import BrandProjectPicker from './BrandProjectPicker';
 import ColorPicker from './ColorPicker';
@@ -7,6 +7,7 @@ import DatePickerModal from './DatePickerModal';
 import { theme } from '../utils/theme';
 import { EVENT_TYPES } from '../utils/constants';
 import { keyOf, parseKey, WEEK } from '../utils/date';
+import { notify } from '../utils/alert';
 
 // 일정 추가/수정 공용 폼. 브랜드 -> 프로젝트를 먼저 고르지 않으면 저장할 수 없다.
 // 달력에서 눌러 수정하는 흐름도 이 모달을 거치므로, 브랜드 색상도 여기서 바로 바꿀 수 있게 한다.
@@ -42,11 +43,11 @@ export default function EventFormModal({
   };
 
   const save = () => {
-    if (brands.length === 0) { Alert.alert('먼저 브랜드를 추가해주세요.'); return; }
-    if (!brandId) { Alert.alert('브랜드를 선택해주세요.'); return; }
-    if (!projectId) { Alert.alert('프로젝트를 선택해주세요.'); return; }
-    if (!title.trim()) { Alert.alert('일정 제목을 입력해주세요.'); return; }
-    onSave({ ...(initial || {}), brandId, projectId, title: title.trim(), date, type });
+    if (brands.length === 0) { notify('먼저 브랜드를 추가해주세요.'); return; }
+    if (!brandId) { notify('브랜드를 선택해주세요.'); return; }
+    if (!projectId) { notify('프로젝트를 선택해주세요.'); return; }
+    // 제목을 따로 안 적으면 업무 유형을 제목으로 그대로 쓴다.
+    onSave({ ...(initial || {}), brandId, projectId, title: title.trim() || type, date, type });
   };
 
   if (!visible) return null;
@@ -79,7 +80,7 @@ export default function EventFormModal({
         </View>
       )}
 
-      <Text style={styles.label}>일정 제목</Text>
+      <Text style={styles.label}>일정 제목 (비우면 업무 유형으로 저장)</Text>
       <TextInput value={title} onChangeText={setTitle} placeholder="예) 기획안 제출" placeholderTextColor={theme.textFaint} style={styles.input} />
       <Text style={styles.label}>날짜</Text>
       <TouchableOpacity style={styles.dateBtn} onPress={() => setDateOpen(true)}>

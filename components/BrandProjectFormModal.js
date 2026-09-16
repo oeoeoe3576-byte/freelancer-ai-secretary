@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import ModalOverlay from './ModalOverlay';
 import ColorPicker from './ColorPicker';
 import { theme } from '../utils/theme';
 import { pickBrandColor } from '../utils/colors';
+import { notify } from '../utils/alert';
 
 // 브랜드 선택 화면에서 "새 브랜드"를 누르면 뜨는 폼.
 // 브랜드는 항상 프로젝트가 있어야 일정을 등록할 수 있으므로, 브랜드 따로 -> 프로젝트 따로
@@ -22,8 +23,8 @@ export default function BrandProjectFormModal({ visible, existingBrands, onSave,
   }, [visible]);
 
   const save = () => {
-    if (!brandName.trim()) { Alert.alert('브랜드 이름을 입력해주세요.'); return; }
-    if (!projectName.trim()) { Alert.alert('프로젝트 이름을 입력해주세요.'); return; }
+    if (!brandName.trim()) { notify('브랜드 이름을 입력해주세요.'); return; }
+    if (!projectName.trim()) { notify('프로젝트 이름을 입력해주세요.'); return; }
     onSave({ brandName: brandName.trim(), color, projectName: projectName.trim() });
   };
 

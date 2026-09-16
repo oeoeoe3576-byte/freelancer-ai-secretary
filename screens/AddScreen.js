@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import { EVENT_TYPES } from '../utils/constants';
 import { keyOf, parseKey, WEEK } from '../utils/date';
+import { notify } from '../utils/alert';
 import BrandProjectPicker from '../components/BrandProjectPicker';
 import PasteExtractSection from '../components/PasteExtractSection';
 import DatePickerModal from '../components/DatePickerModal';
@@ -25,11 +26,13 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
   };
 
   const submit = () => {
-    if (brands.length === 0) { Alert.alert('먼저 브랜드를 추가해주세요.'); return; }
-    if (!brandId) { Alert.alert('브랜드를 선택해주세요.'); return; }
-    if (!projectId) { Alert.alert('프로젝트를 선택해주세요.'); return; }
-    if (!title.trim()) { Alert.alert('일정 제목을 입력해주세요.'); return; }
-    onCreateEvent({ brandId, projectId, title: title.trim(), date, type });
+    if (brands.length === 0) { notify('먼저 브랜드를 추가해주세요.'); return; }
+    if (!brandId) { notify('브랜드를 선택해주세요.'); return; }
+    if (!projectId) { notify('프로젝트를 선택해주세요.'); return; }
+    // 제목을 따로 안 적으면 업무 유형("협찬", "촬영" 등)을 제목으로 그대로 쓴다.
+    const finalTitle = title.trim() || type;
+    onCreateEvent({ brandId, projectId, title: finalTitle, date, type });
+    notify('일정 추가 완료', `${finalTitle} · ${date}`);
     setTitle('');
     setDate(keyOf(new Date()));
     setType('업무');
@@ -52,7 +55,7 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
           onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
           onDeleteBrand={deleteBrand}
         />
-        <Text style={styles.label}>일정 제목</Text>
+        <Text style={styles.label}>일정 제목 (비우면 업무 유형으로 저장)</Text>
         <TextInput value={title} onChangeText={setTitle} placeholder="예) 기획안 제출" placeholderTextColor={theme.textFaint} style={styles.input} />
         <Text style={styles.label}>날짜</Text>
         <TouchableOpacity style={styles.dateBtn} onPress={() => setDateOpen(true)}>

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import ModalOverlay from './ModalOverlay';
 import DatePickerModal from './DatePickerModal';
 import { theme } from '../utils/theme';
 import { hexToRgba } from '../utils/colors';
 import { parseKey, WEEK } from '../utils/date';
+import { notify } from '../utils/alert';
 
 // 프로젝트 추가/수정 공용 폼. 브랜드는 항상 고정된 상태로 전달받는다(브랜드 화면/일정폼에서 진입).
 export default function ProjectFormModal({ visible, mode, initial, brand, onSave, onClose }) {
@@ -24,8 +25,8 @@ export default function ProjectFormModal({ visible, mode, initial, brand, onSave
   }, [visible, initial]);
 
   const save = () => {
-    if (!brand) { Alert.alert('브랜드를 먼저 선택해주세요.'); return; }
-    if (!name.trim()) { Alert.alert('프로젝트 이름을 입력해주세요.'); return; }
+    if (!brand) { notify('브랜드를 먼저 선택해주세요.'); return; }
+    if (!name.trim()) { notify('프로젝트 이름을 입력해주세요.'); return; }
     const numericAmount = amount.replace(/[^0-9]/g, '');
     onSave({
       ...(initial || {}),

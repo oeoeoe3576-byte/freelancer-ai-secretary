@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { theme } from '../utils/theme';
 import BrandProjectPicker from './BrandProjectPicker';
 import OcrApiKeyModal from './OcrApiKeyModal';
 import { extractEvents } from '../utils/extract';
 import { getOcrApiKey, setOcrApiKey, recognizeText } from '../utils/ocr';
+import { notify, notifyWithActions } from '../utils/alert';
 
 // 메일/카톡 본문 붙여넣기, 또는 사진 촬영·선택으로 글자 인식(OCR) -> 날짜 있는 줄 자동 추출
 // -> 선택한 브랜드/프로젝트 아래로 한꺼번에 등록.
@@ -28,12 +29,12 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
   };
 
   const run = () => {
-    if (!brandId || !projectId) { Alert.alert('브랜드와 프로젝트를 먼저 선택해주세요.'); return; }
+    if (!brandId || !projectId) { notify('브랜드와 프로젝트를 먼저 선택해주세요.'); return; }
     const found = extractEvents(input);
-    if (!found.length) { Alert.alert('날짜를 찾지 못했습니다', '예: 8/25 초안 전달, 8월 28일 업로드'); return; }
+    if (!found.length) { notify('날짜를 찾지 못했습니다', '예: 8/25 초안 전달, 8월 28일 업로드'); return; }
     onExtract(brandId, projectId, found);
     setInput('');
-    Alert.alert('일정 등록 완료', `${found.length}개의 일정을 추가했습니다.`);
+    notify('일정 등록 완료', `${found.length}개의 일정을 추가했습니다.`);
   };
 
   // 사진 촬영/선택 -> 권한 확인 -> OCR 인식 -> 인식된 텍스트를 입력창에 채워준다 (등록 전 확인/수정 가능).
@@ -43,7 +44,7 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
         ? await ImagePicker.requestCameraPermissionsAsync()
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('권한이 필요합니다', source === 'camera' ? '카메라 접근을 허용해주세요.' : '사진 보관함 접근을 허용해주세요.');
+        notify('권한이 필요합니다', source === 'camera' ? '카메라 접근을 허용해주세요.' : '사진 보관함 접근을 허용해주세요.');
         return;
       }
 
@@ -59,7 +60,7 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
       setInput(prev => (prev.trim() ? `${prev}\n${text}` : text));
       setOpen(true);
     } catch (e) {
-      Alert.alert('텍스트 인식 실패', e.message || '잠시 후 다시 시도해주세요.');
+      notify('텍스트 인식 실패', e.message || '잠시 후 다시 시도해주세요.');
     } finally {
       setOcrLoading(false);
     }
@@ -77,7 +78,7 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
   };
 
   const startPhotoOcr = () => {
-    Alert.alert('사진에서 텍스트 가져오기', '어디서 가져올까요?', [
+    notifyWithActions('사진에서 텍스트 가져오기', '어디서 가져올까요?', [
       { text: '카메라로 촬영', onPress: () => chooseSource('camera') },
       { text: '앨범에서 선택', onPress: () => chooseSource('library') },
       { text: '취소', style: 'cancel' },

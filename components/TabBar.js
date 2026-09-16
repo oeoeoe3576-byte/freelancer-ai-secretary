@@ -7,6 +7,7 @@ const TABS = [
   { key: 'calendar', label: '일정', icon: '📅' },
   { key: 'add', label: '추가', icon: '➕' },
   { key: 'ledger', label: '가계부', icon: '💰' },
+  { key: 'brands', label: '브랜드', icon: '🏷️' },
 ];
 
 // 하단 탭바. 어느 화면(브랜드 상세 등)에 들어가 있어도 항상 보이며,

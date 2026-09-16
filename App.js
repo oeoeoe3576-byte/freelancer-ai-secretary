@@ -33,9 +33,9 @@ export default function App() {
   const [projects, setProjects] = useState([]);
   const [events, setEvents] = useState([]);
 
-  // 하단 탭(홈/일정/추가/가계부) + 브랜드-프로젝트 드릴다운 스택(탭과 별개로, 탭바는 계속 보인다)
+  // 하단 탭(홈/일정/추가/가계부/브랜드) + 브랜드-프로젝트 드릴다운 스택(탭과 별개로, 탭바는 계속 보인다)
   const [activeTab, setActiveTab] = useState('home');
-  const [drill, setDrill] = useState(null); // null | {screen:'brands'} | {screen:'brandDetail', brandId} | {screen:'projectDetail', projectId}
+  const [drill, setDrill] = useState(null); // null | {screen:'brandDetail', brandId} | {screen:'projectDetail', projectId}
 
   const [eventForm, setEventForm] = useState(null); // { mode, initial }
   const [brandForm, setBrandForm] = useState(null); // { mode, initial, onSaved }
@@ -75,7 +75,7 @@ export default function App() {
 
   // ---------- 탭/드릴다운 네비게이션 ----------
   const switchTab = (tab) => { setDrill(null); setActiveTab(tab); };
-  const openBrands = () => setDrill({ screen: 'brands' });
+  const openBrands = () => switchTab('brands');
   const openBrandDetail = (brandId) => setDrill({ screen: 'brandDetail', brandId });
   const openProjectDetail = (projectId) => setDrill({ screen: 'projectDetail', projectId });
 
@@ -169,7 +169,7 @@ export default function App() {
       onConfirm: () => {
         deleteBrandCascade(brand.id);
         setConfirm(null);
-        if (navigateAfter) setDrill({ screen: 'brands' });
+        if (navigateAfter) setDrill(null);
         onDeleted?.();
       },
     });
@@ -223,25 +223,15 @@ export default function App() {
   let screenNode = null;
   if (!loaded) {
     screenNode = <View style={styles.loading}><Text style={styles.loadingText}>불러오는 중…</Text></View>;
-  } else if (drill?.screen === 'brands') {
-    screenNode = (
-      <BrandsScreen
-        brands={brands} projects={projects} events={events}
-        onBack={() => setDrill(null)}
-        onOpenBrand={openBrandDetail}
-        onEditBrand={openEditBrand}
-        onAddBrand={() => openAddBrand()}
-      />
-    );
   } else if (drill?.screen === 'brandDetail') {
     const brand = brands.find(b => b.id === drill.brandId);
     if (!brand) {
-      screenNode = <MissingScreen label="브랜드를 찾을 수 없습니다." onBack={() => setDrill({ screen: 'brands' })} />;
+      screenNode = <MissingScreen label="브랜드를 찾을 수 없습니다." onBack={() => setDrill(null)} />;
     } else {
       screenNode = (
         <BrandDetailScreen
           brand={brand} projects={projects} events={events}
-          onBack={() => setDrill({ screen: 'brands' })}
+          onBack={() => setDrill(null)}
           onOpenProject={openProjectDetail}
           onEditProject={openEditProject}
           onAddProject={() => openAddProject(brand.id)}
@@ -253,7 +243,7 @@ export default function App() {
   } else if (drill?.screen === 'projectDetail') {
     const project = projects.find(p => p.id === drill.projectId);
     if (!project) {
-      screenNode = <MissingScreen label="프로젝트를 찾을 수 없습니다." onBack={() => setDrill({ screen: 'brands' })} />;
+      screenNode = <MissingScreen label="프로젝트를 찾을 수 없습니다." onBack={() => setDrill(null)} />;
     } else {
       const brand = brands.find(b => b.id === project.brandId);
       screenNode = (
@@ -293,6 +283,15 @@ export default function App() {
         projects={projects} brands={brands}
         onOpenProject={openProjectDetail}
         onOpenBrands={openBrands}
+      />
+    );
+  } else if (activeTab === 'brands') {
+    screenNode = (
+      <BrandsScreen
+        brands={brands} projects={projects} events={events}
+        onOpenBrand={openBrandDetail}
+        onEditBrand={openEditBrand}
+        onAddBrand={() => openAddBrand()}
       />
     );
   } else {

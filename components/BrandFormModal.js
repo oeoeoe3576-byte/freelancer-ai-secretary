@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import ModalOverlay from './ModalOverlay';
 import ColorPicker from './ColorPicker';
 import { theme } from '../utils/theme';
 import { pickBrandColor } from '../utils/colors';
+import { notify } from '../utils/alert';
 
 // 브랜드 추가/수정 공용 폼. mode='add'|'edit'
 // 새 브랜드는 기존 브랜드와 겹치지 않는 색을 팔레트에서 자동 배정한다(나중에 자유롭게 변경 가능).
@@ -19,7 +20,7 @@ export default function BrandFormModal({ visible, mode, initial, existingBrands,
   }, [visible, initial]);
 
   const save = () => {
-    if (!name.trim()) { Alert.alert('브랜드 이름을 입력해주세요.'); return; }
+    if (!name.trim()) { notify('브랜드 이름을 입력해주세요.'); return; }
     onSave({ ...(initial || {}), name: name.trim(), color });
   };
 

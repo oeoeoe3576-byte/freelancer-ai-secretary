@@ -15,7 +15,8 @@ function EventChip({ e }) {
   );
 }
 
-// 월/주/일 달력. 날짜를 누르면 완료 처리 등 동작 없이 선택만 되고, 상세 목록은 바깥(DayDetailPanel)에서 보여준다.
+// 월/주/일 달력. 날짜를 누르면 그 날짜가 선택되면서(상세 목록은 바깥 DayDetailPanel에서 보여줌)
+// 동시에 일정 추가 창이 바로 뜬다 — 취소하면 선택된 날짜의 기존 일정 목록을 그대로 볼 수 있다.
 // (일 보기에서는 해당 날짜 일정 목록을 이 컴포넌트 안에서 바로 보여준다.)
 export default function CalendarCard({ cursor, onCursorChange, view, onViewChange, grouped, selectedDate, onSelectDate, todayKey, onOpenEvent, onAddEvent }) {
   const monthCells = useMemo(() => {
@@ -80,7 +81,7 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
               const list = grouped[k] || [];
               const isSelected = k === selectedDate;
               return (
-                <TouchableOpacity key={k} onPress={() => onSelectDate(k)} style={[styles.dayCell, k === todayKey && styles.todayCell, isSelected && styles.selectedCell]}>
+                <TouchableOpacity key={k} onPress={() => { onSelectDate(k); onAddEvent(k); }} style={[styles.dayCell, k === todayKey && styles.todayCell, isSelected && styles.selectedCell]}>
                   <Text style={[styles.dayNum, !active && styles.muted, k === todayKey && styles.todayNum]}>{d.getDate()}</Text>
                   {list.slice(0, 2).map(e => <EventChip e={e} key={e.id} />)}
                   {list.length > 2 && <Text style={styles.more}>+{list.length - 2}</Text>}
@@ -98,7 +99,7 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
             const list = grouped[k] || [];
             const isSelected = k === selectedDate;
             return (
-              <TouchableOpacity key={k} onPress={() => onSelectDate(k)} style={[styles.weekRow, isSelected && styles.selectedRow]}>
+              <TouchableOpacity key={k} onPress={() => { onSelectDate(k); onAddEvent(k); }} style={[styles.weekRow, isSelected && styles.selectedRow]}>
                 <View style={styles.weekDate}>
                   <Text style={styles.weekDay}>{WEEK[d.getDay()]}</Text>
                   <Text style={[styles.weekDateNum, k === todayKey && styles.todayNum]}>{d.getDate()}</Text>
