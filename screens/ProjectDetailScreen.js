@@ -38,7 +38,9 @@ export default function ProjectDetailScreen({ project, brand, events, onBack, on
             <View>
               <Text style={styles.settleAmount}>{formatWon(project.amount)}</Text>
               <Text style={[styles.settleStatus, project.settled ? styles.settledText : styles.pendingText]}>
-                {project.settled ? `정산 완료 · ${project.settledAt || ''}` : '정산 대기중'}
+                {project.settled
+                  ? `정산 완료 · ${project.settledAt || ''}`
+                  : `정산 대기중${project.dueDate ? ` · 예정일 ${project.dueDate}` : ''}`}
               </Text>
             </View>
             <TouchableOpacity

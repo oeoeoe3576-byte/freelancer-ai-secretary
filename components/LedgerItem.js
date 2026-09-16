@@ -15,10 +15,15 @@ export default function LedgerItem({ project, brand, onPress }) {
         <Text style={styles.name} numberOfLines={1}>{project.name}</Text>
         <Text style={styles.amount}>{formatWon(project.amount)}</Text>
       </View>
-      <View style={[styles.badge, project.settled ? styles.badgeDone : styles.badgePending]}>
-        <Text style={[styles.badgeText, project.settled ? styles.badgeTextDone : styles.badgeTextPending]}>
-          {project.settled ? '✓ 정산완료' : '정산대기'}
-        </Text>
+      <View style={styles.badgeCol}>
+        <View style={[styles.badge, project.settled ? styles.badgeDone : styles.badgePending]}>
+          <Text style={[styles.badgeText, project.settled ? styles.badgeTextDone : styles.badgeTextPending]}>
+            {project.settled ? '✓ 정산완료' : '정산대기'}
+          </Text>
+        </View>
+        {!project.settled && !!project.dueDate && (
+          <Text style={styles.dueDate}>{project.dueDate} 예정</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -31,7 +36,9 @@ const styles = StyleSheet.create({
   brand: { fontSize: 11.5, fontWeight: '700', color: theme.textSub },
   name: { fontSize: 15, fontWeight: '800', color: theme.text, marginTop: 2 },
   amount: { fontSize: 14, fontWeight: '700', color: theme.text, marginTop: 4 },
-  badge: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, marginRight: 12 },
+  badgeCol: { alignItems: 'flex-end', marginRight: 12, gap: 4 },
+  badge: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill },
+  dueDate: { fontSize: 10.5, color: theme.textFaint, fontWeight: '700' },
   badgePending: { backgroundColor: '#FEF3C7' },
   badgeDone: { backgroundColor: '#DCFCE7' },
   badgeText: { fontSize: 11.5, fontWeight: '800' },

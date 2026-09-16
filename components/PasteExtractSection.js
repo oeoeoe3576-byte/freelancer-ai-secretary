@@ -9,7 +9,7 @@ import { getOcrApiKey, setOcrApiKey, recognizeText } from '../utils/ocr';
 
 // 메일/카톡 본문 붙여넣기, 또는 사진 촬영·선택으로 글자 인식(OCR) -> 날짜 있는 줄 자동 추출
 // -> 선택한 브랜드/프로젝트 아래로 한꺼번에 등록.
-export default function PasteExtractSection({ brands, projects, onAddBrand, onAddProject, onExtract }) {
+export default function PasteExtractSection({ brands, projects, onAddBrand, onAddProject, onDeleteBrand, onExtract }) {
   const [open, setOpen] = useState(false);
   const [brandId, setBrandId] = useState('');
   const [projectId, setProjectId] = useState('');
@@ -20,6 +20,12 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
   const [pendingSource, setPendingSource] = useState(null); // 키 입력 후 이어서 실행할 'camera' | 'library'
 
   const changeBrand = (id) => { setBrandId(id); setProjectId(''); };
+
+  const deleteBrand = (brand) => {
+    onDeleteBrand(brand, () => {
+      if (brand.id === brandId) { setBrandId(''); setProjectId(''); }
+    });
+  };
 
   const run = () => {
     if (!brandId || !projectId) { Alert.alert('브랜드와 프로젝트를 먼저 선택해주세요.'); return; }
@@ -116,6 +122,7 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
             onChangeProject={setProjectId}
             onAddBrand={() => onAddBrand((b, p) => { setBrandId(b.id); setProjectId(p.id); })}
             onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
+            onDeleteBrand={deleteBrand}
           />
           <TouchableOpacity style={styles.photoBtn} onPress={startPhotoOcr} disabled={ocrLoading}>
             {ocrLoading ? (

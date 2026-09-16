@@ -2,26 +2,33 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { theme } from '../utils/theme';
 import { EVENT_TYPES } from '../utils/constants';
-import { keyOf, isValidDateKey } from '../utils/date';
+import { keyOf, parseKey, WEEK } from '../utils/date';
 import BrandProjectPicker from '../components/BrandProjectPicker';
 import PasteExtractSection from '../components/PasteExtractSection';
+import DatePickerModal from '../components/DatePickerModal';
 
 // 일정 추가 탭: 팝업 없이 항상 열려 있는 빠른 등록 화면 + 붙여넣기 자동추출.
-export default function AddScreen({ brands, projects, onAddBrand, onAddProject, onCreateEvent, onExtract }) {
+export default function AddScreen({ brands, projects, onAddBrand, onAddProject, onDeleteBrand, onCreateEvent, onExtract }) {
   const [brandId, setBrandId] = useState('');
   const [projectId, setProjectId] = useState('');
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(keyOf(new Date()));
   const [type, setType] = useState('업무');
+  const [dateOpen, setDateOpen] = useState(false);
 
   const changeBrand = (id) => { setBrandId(id); setProjectId(''); };
+
+  const deleteBrand = (brand) => {
+    onDeleteBrand(brand, () => {
+      if (brand.id === brandId) { setBrandId(''); setProjectId(''); }
+    });
+  };
 
   const submit = () => {
     if (brands.length === 0) { Alert.alert('먼저 브랜드를 추가해주세요.'); return; }
     if (!brandId) { Alert.alert('브랜드를 선택해주세요.'); return; }
     if (!projectId) { Alert.alert('프로젝트를 선택해주세요.'); return; }
     if (!title.trim()) { Alert.alert('일정 제목을 입력해주세요.'); return; }
-    if (!isValidDateKey(date)) { Alert.alert('날짜는 YYYY-MM-DD 형식으로 입력해주세요.'); return; }
     onCreateEvent({ brandId, projectId, title: title.trim(), date, type });
     setTitle('');
     setDate(keyOf(new Date()));
@@ -43,11 +50,15 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
           onChangeProject={setProjectId}
           onAddBrand={() => onAddBrand((b, p) => { setBrandId(b.id); setProjectId(p.id); })}
           onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
+          onDeleteBrand={deleteBrand}
         />
         <Text style={styles.label}>일정 제목</Text>
         <TextInput value={title} onChangeText={setTitle} placeholder="예) 기획안 제출" placeholderTextColor={theme.textFaint} style={styles.input} />
-        <Text style={styles.label}>날짜 (YYYY-MM-DD)</Text>
-        <TextInput value={date} onChangeText={setDate} placeholder="2026-08-25" placeholderTextColor={theme.textFaint} style={styles.input} />
+        <Text style={styles.label}>날짜</Text>
+        <TouchableOpacity style={styles.dateBtn} onPress={() => setDateOpen(true)}>
+          <Text style={styles.dateBtnText}>{date} ({WEEK[parseKey(date).getDay()]})</Text>
+          <Text style={styles.dateBtnIcon}>📅</Text>
+        </TouchableOpacity>
         <Text style={styles.label}>업무 유형</Text>
         <View style={styles.typeRow}>
           {EVENT_TYPES.map(t => (
@@ -66,7 +77,15 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
         projects={projects}
         onAddBrand={onAddBrand}
         onAddProject={onAddProject}
+        onDeleteBrand={onDeleteBrand}
         onExtract={onExtract}
+      />
+
+      <DatePickerModal
+        visible={dateOpen}
+        value={date}
+        onSelect={(k) => { setDate(k); setDateOpen(false); }}
+        onClose={() => setDateOpen(false)}
       />
     </ScrollView>
   );
@@ -79,6 +98,9 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 16, fontWeight: '800', color: theme.text, marginBottom: 4 },
   label: { fontSize: 12, fontWeight: '800', color: theme.textSub, marginBottom: 8, marginTop: 10 },
   input: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.sm, padding: 12, marginBottom: 4, fontSize: 14 },
+  dateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.sm, padding: 12, marginBottom: 4 },
+  dateBtnText: { fontSize: 14, color: theme.text, fontWeight: '600' },
+  dateBtnIcon: { fontSize: 14 },
   typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeBtn: { paddingHorizontal: 13, paddingVertical: 9, backgroundColor: '#F6F1EC', borderRadius: theme.radius.pill },
   typeOn: { backgroundColor: theme.text },

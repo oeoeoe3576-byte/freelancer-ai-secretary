@@ -7,7 +7,7 @@ import DayDetailPanel from '../components/DayDetailPanel';
 
 // 일정 탭: 월/주/일 달력. 일 보기에서는 달력 컴포넌트 안에서 바로 목록을 보여주므로
 // 아래 날짜 상세 패널은 월/주 보기일 때만 노출한다(중복 방지).
-export default function CalendarScreen({ enrichedEvents, onOpenEvent }) {
+export default function CalendarScreen({ enrichedEvents, onOpenEvent, onAddEvent }) {
   const [cursor, setCursor] = useState(new Date());
   const [view, setView] = useState('month');
   const [selectedDate, setSelectedDate] = useState(keyOf(new Date()));
@@ -29,9 +29,10 @@ export default function CalendarScreen({ enrichedEvents, onOpenEvent }) {
           onSelectDate={setSelectedDate}
           todayKey={todayKey}
           onOpenEvent={onOpenEvent}
+          onAddEvent={onAddEvent}
         />
         {view !== 'day' && (
-          <DayDetailPanel dateKey={selectedDate} events={grouped[selectedDate] || []} onOpenEvent={onOpenEvent} />
+          <DayDetailPanel dateKey={selectedDate} events={grouped[selectedDate] || []} onOpenEvent={onOpenEvent} onAddEvent={onAddEvent} />
         )}
       </View>
     </ScrollView>

@@ -17,7 +17,7 @@ function EventChip({ e }) {
 
 // 월/주/일 달력. 날짜를 누르면 완료 처리 등 동작 없이 선택만 되고, 상세 목록은 바깥(DayDetailPanel)에서 보여준다.
 // (일 보기에서는 해당 날짜 일정 목록을 이 컴포넌트 안에서 바로 보여준다.)
-export default function CalendarCard({ cursor, onCursorChange, view, onViewChange, grouped, selectedDate, onSelectDate, todayKey, onOpenEvent }) {
+export default function CalendarCard({ cursor, onCursorChange, view, onViewChange, grouped, selectedDate, onSelectDate, todayKey, onOpenEvent, onAddEvent }) {
   const monthCells = useMemo(() => {
     const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
     const start = addDays(first, -first.getDay());
@@ -114,6 +114,9 @@ export default function CalendarCard({ cursor, onCursorChange, view, onViewChang
 
       {view === 'day' && (
         <View>
+          <TouchableOpacity onPress={() => onAddEvent(keyOf(cursor))} style={styles.dayAddBtn}>
+            <Text style={styles.dayAddBtnText}>+ 이 날짜에 일정 추가</Text>
+          </TouchableOpacity>
           {(grouped[keyOf(cursor)] || []).length === 0 ? (
             <Text style={styles.dayEmpty}>등록된 일정이 없습니다.</Text>
           ) : (
@@ -160,4 +163,6 @@ const styles = StyleSheet.create({
   weekEvents: { flex: 1, gap: 5, justifyContent: 'center', paddingLeft: 4 },
   empty: { fontSize: 12, color: theme.textFaint },
   dayEmpty: { fontSize: 13, color: theme.textFaint, textAlign: 'center', paddingVertical: 30 },
+  dayAddBtn: { backgroundColor: theme.primary, paddingVertical: 12, borderRadius: theme.radius.md, alignItems: 'center', marginBottom: 12 },
+  dayAddBtnText: { color: '#fff', fontWeight: '800', fontSize: 13 },
 });

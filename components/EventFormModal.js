@@ -3,15 +3,16 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import ModalOverlay from './ModalOverlay';
 import BrandProjectPicker from './BrandProjectPicker';
 import ColorPicker from './ColorPicker';
+import DatePickerModal from './DatePickerModal';
 import { theme } from '../utils/theme';
 import { EVENT_TYPES } from '../utils/constants';
-import { keyOf, isValidDateKey } from '../utils/date';
+import { keyOf, parseKey, WEEK } from '../utils/date';
 
 // 일정 추가/수정 공용 폼. 브랜드 -> 프로젝트를 먼저 고르지 않으면 저장할 수 없다.
 // 달력에서 눌러 수정하는 흐름도 이 모달을 거치므로, 브랜드 색상도 여기서 바로 바꿀 수 있게 한다.
 export default function EventFormModal({
   visible, mode, initial, brands, projects,
-  onSave, onClose, onAddBrand, onAddProject, onChangeBrandColor,
+  onSave, onClose, onAddBrand, onAddProject, onDeleteBrand, onChangeBrandColor,
 }) {
   const [brandId, setBrandId] = useState('');
   const [projectId, setProjectId] = useState('');
@@ -19,6 +20,7 @@ export default function EventFormModal({
   const [date, setDate] = useState(keyOf(new Date()));
   const [type, setType] = useState('업무');
   const [colorOpen, setColorOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -33,12 +35,17 @@ export default function EventFormModal({
   const changeBrand = (id) => { setBrandId(id); setProjectId(''); setColorOpen(false); };
   const selectedBrand = brands.find(b => b.id === brandId);
 
+  const deleteBrand = (brand) => {
+    onDeleteBrand(brand, () => {
+      if (brand.id === brandId) { setBrandId(''); setProjectId(''); }
+    });
+  };
+
   const save = () => {
     if (brands.length === 0) { Alert.alert('먼저 브랜드를 추가해주세요.'); return; }
     if (!brandId) { Alert.alert('브랜드를 선택해주세요.'); return; }
     if (!projectId) { Alert.alert('프로젝트를 선택해주세요.'); return; }
     if (!title.trim()) { Alert.alert('일정 제목을 입력해주세요.'); return; }
-    if (!isValidDateKey(date)) { Alert.alert('날짜는 YYYY-MM-DD 형식으로 입력해주세요.'); return; }
     onSave({ ...(initial || {}), brandId, projectId, title: title.trim(), date, type });
   };
 
@@ -56,6 +63,7 @@ export default function EventFormModal({
         onChangeProject={setProjectId}
         onAddBrand={() => onAddBrand((b, p) => { setBrandId(b.id); setProjectId(p.id); })}
         onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
+        onDeleteBrand={deleteBrand}
       />
 
       {selectedBrand && (
@@ -73,8 +81,11 @@ export default function EventFormModal({
 
       <Text style={styles.label}>일정 제목</Text>
       <TextInput value={title} onChangeText={setTitle} placeholder="예) 기획안 제출" placeholderTextColor={theme.textFaint} style={styles.input} />
-      <Text style={styles.label}>날짜 (YYYY-MM-DD)</Text>
-      <TextInput value={date} onChangeText={setDate} placeholder="2026-08-25" placeholderTextColor={theme.textFaint} style={styles.input} />
+      <Text style={styles.label}>날짜</Text>
+      <TouchableOpacity style={styles.dateBtn} onPress={() => setDateOpen(true)}>
+        <Text style={styles.dateBtnText}>{date} ({WEEK[parseKey(date).getDay()]})</Text>
+        <Text style={styles.dateBtnIcon}>📅</Text>
+      </TouchableOpacity>
       <Text style={styles.label}>업무 유형</Text>
       <View style={styles.typeRow}>
         {EVENT_TYPES.map(t => (
@@ -88,6 +99,13 @@ export default function EventFormModal({
         <Text style={styles.primaryText}>{mode === 'edit' ? '저장' : '일정 추가'}</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.cancel} onPress={onClose}><Text style={styles.cancelText}>취소</Text></TouchableOpacity>
+
+      <DatePickerModal
+        visible={dateOpen}
+        value={date}
+        onSelect={(k) => { setDate(k); setDateOpen(false); }}
+        onClose={() => setDateOpen(false)}
+      />
     </ModalOverlay>
   );
 }
@@ -101,6 +119,9 @@ const styles = StyleSheet.create({
   colorToggleIcon: { fontSize: 11, color: theme.textFaint },
   label: { fontSize: 12, fontWeight: '800', color: theme.textSub, marginBottom: 8, marginTop: 8 },
   input: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.sm, padding: 12, marginBottom: 4, fontSize: 14 },
+  dateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.sm, padding: 12, marginBottom: 4 },
+  dateBtnText: { fontSize: 14, color: theme.text, fontWeight: '600' },
+  dateBtnIcon: { fontSize: 14 },
   typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeBtn: { paddingHorizontal: 13, paddingVertical: 9, backgroundColor: '#F3F4F6', borderRadius: 10 },
   typeOn: { backgroundColor: theme.text },

@@ -80,8 +80,11 @@ export default function App() {
   const openProjectDetail = (projectId) => setDrill({ screen: 'projectDetail', projectId });
 
   // ---------- 일정 ----------
-  const openAddEvent = (presetBrandId, presetProjectId) => {
-    setEventForm({ mode: 'add', initial: presetBrandId ? { brandId: presetBrandId, projectId: presetProjectId || '' } : null });
+  // opts: { brandId, projectId, date } - 프로젝트 상세/달력의 "일정 추가"처럼 미리 채워서 열 때 쓴다.
+  const openAddEvent = (opts) => {
+    const { brandId, projectId, date } = opts || {};
+    const initial = (brandId || date) ? { brandId: brandId || '', projectId: projectId || '', date } : null;
+    setEventForm({ mode: 'add', initial });
   };
   const openEditEvent = (event) => setEventForm({ mode: 'edit', initial: event });
   const saveEventForm = (data) => {
@@ -151,7 +154,9 @@ export default function App() {
     setProjects(prev => prev.filter(p => p.brandId !== brandId));
     setEvents(prev => prev.filter(e => e.brandId !== brandId));
   };
-  const requestDeleteBrand = (brand) => {
+  // 브랜드 삭제 확인 공용 로직. navigateAfter: 브랜드 상세 화면에서 삭제할 때만 목록으로 돌아간다
+  // (일정 추가 화면의 브랜드 칩에서 바로 지울 때는 화면 이동 없이 그 자리에 머무른다).
+  const confirmDeleteBrand = (brand, { navigateAfter = false, onDeleted } = {}) => {
     const projectCount = projects.filter(p => p.brandId === brand.id).length;
     const eventCount = events.filter(e => e.brandId === brand.id).length;
     setConfirm({
@@ -164,10 +169,12 @@ export default function App() {
       onConfirm: () => {
         deleteBrandCascade(brand.id);
         setConfirm(null);
-        setDrill({ screen: 'brands' });
+        if (navigateAfter) setDrill({ screen: 'brands' });
+        onDeleted?.();
       },
     });
   };
+  const requestDeleteBrand = (brand) => confirmDeleteBrand(brand, { navigateAfter: true });
 
   // ---------- 프로젝트 ----------
   const openAddProject = (brandId, onSaved) => {
@@ -180,10 +187,10 @@ export default function App() {
   };
   const saveProjectForm = (data) => {
     if (data.id) {
-      setProjects(prev => prev.map(p => (p.id === data.id ? { ...p, name: data.name, memo: data.memo, amount: data.amount } : p)));
+      setProjects(prev => prev.map(p => (p.id === data.id ? { ...p, name: data.name, memo: data.memo, amount: data.amount, dueDate: data.dueDate } : p)));
       projectForm?.onSaved?.(data);
     } else {
-      const p = { id: newId('p'), brandId: data.brandId, name: data.name, memo: data.memo, amount: data.amount, settled: false, settledAt: null, createdAt: Date.now() };
+      const p = { id: newId('p'), brandId: data.brandId, name: data.name, memo: data.memo, amount: data.amount, dueDate: data.dueDate || null, settled: false, settledAt: null, createdAt: Date.now() };
       setProjects(prev => [...prev, p]);
       projectForm?.onSaved?.(p);
     }
@@ -254,7 +261,7 @@ export default function App() {
           project={project} brand={brand} events={events}
           onBack={() => setDrill({ screen: 'brandDetail', brandId: project.brandId })}
           onOpenEvent={setViewEventId}
-          onAddEvent={() => openAddEvent(project.brandId, project.id)}
+          onAddEvent={() => openAddEvent({ brandId: project.brandId, projectId: project.id })}
           onEditProject={() => openEditProject(project)}
           onDeleteProject={() => requestDeleteProject(project)}
           onToggleSettled={() => toggleProjectSettled(project)}
@@ -262,13 +269,20 @@ export default function App() {
       );
     }
   } else if (activeTab === 'calendar') {
-    screenNode = <CalendarScreen enrichedEvents={enrichedEvents} onOpenEvent={setViewEventId} />;
+    screenNode = (
+      <CalendarScreen
+        enrichedEvents={enrichedEvents}
+        onOpenEvent={setViewEventId}
+        onAddEvent={(date) => openAddEvent({ date })}
+      />
+    );
   } else if (activeTab === 'add') {
     screenNode = (
       <AddScreen
         brands={brands} projects={projects}
         onAddBrand={openAddBrandWithProject}
         onAddProject={openAddProject}
+        onDeleteBrand={(brand, onDeleted) => confirmDeleteBrand(brand, { onDeleted })}
         onCreateEvent={saveEventForm}
         onExtract={onExtractEvents}
       />
@@ -309,6 +323,7 @@ export default function App() {
         onClose={() => setEventForm(null)}
         onAddBrand={openAddBrandWithProject}
         onAddProject={openAddProject}
+        onDeleteBrand={(brand, onDeleted) => confirmDeleteBrand(brand, { onDeleted })}
         onChangeBrandColor={updateBrandColorInline}
       />
 
