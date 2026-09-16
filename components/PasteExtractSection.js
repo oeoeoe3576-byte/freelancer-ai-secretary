@@ -29,10 +29,10 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
   };
 
   const run = () => {
-    if (!brandId || !projectId) { notify('브랜드와 프로젝트를 먼저 선택해주세요.'); return; }
+    if (!brandId) { notify('브랜드를 먼저 선택해주세요.'); return; }
     const found = extractEvents(input);
     if (!found.length) { notify('날짜를 찾지 못했습니다', '예: 8/25 초안 전달, 8월 28일 업로드'); return; }
-    onExtract(brandId, projectId, found);
+    onExtract(brandId, projectId || null, found);
     setInput('');
     notify('일정 등록 완료', `${found.length}개의 일정을 추가했습니다.`);
   };

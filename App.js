@@ -202,6 +202,10 @@ export default function App() {
       ? { ...p, settled: !p.settled, settledAt: !p.settled ? keyOf(new Date()) : null }
       : p)));
   };
+  // 가계부 목록에서 바로 정산 예정일을 설정/수정한다(프로젝트 수정 화면까지 안 들어가도 되게)
+  const updateProjectDueDate = (projectId, dueDate) => {
+    setProjects(prev => prev.map(p => (p.id === projectId ? { ...p, dueDate } : p)));
+  };
   const requestDeleteProject = (project) => {
     const count = events.filter(e => e.projectId === project.id).length;
     setConfirm({
@@ -283,6 +287,7 @@ export default function App() {
         projects={projects} brands={brands}
         onOpenProject={openProjectDetail}
         onOpenBrands={openBrands}
+        onSetDueDate={updateProjectDueDate}
       />
     );
   } else if (activeTab === 'brands') {

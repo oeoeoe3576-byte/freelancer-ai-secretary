@@ -1,12 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import { formatWon } from '../utils/ledger';
 import LedgerItem from '../components/LedgerItem';
+import DatePickerModal from '../components/DatePickerModal';
 
 // 가계부 탭: 금액이 설정된 프로젝트를 한눈에 모아 정산 여부를 관리한다.
 // 정산 완료/취소 토글은 실수 방지를 위해 프로젝트 상세 화면에서만 한다.
-export default function LedgerScreen({ projects, brands, onOpenProject, onOpenBrands }) {
+// 정산 예정일은 자주 놓치는 정보라 목록에서 바로 설정/수정할 수 있게 한다.
+export default function LedgerScreen({ projects, brands, onOpenProject, onOpenBrands, onSetDueDate }) {
+  const [dueDateTarget, setDueDateTarget] = useState(null);
   const priced = useMemo(
     () => projects.filter(p => Number(p.amount) > 0).sort((a, b) => Number(!!a.settled) - Number(!!b.settled) || (b.createdAt || 0) - (a.createdAt || 0)),
     [projects]
@@ -51,9 +54,17 @@ export default function LedgerScreen({ projects, brands, onOpenProject, onOpenBr
             project={p}
             brand={brands.find(b => b.id === p.brandId)}
             onPress={() => onOpenProject(p.id)}
+            onEditDueDate={setDueDateTarget}
           />
         ))
       )}
+
+      <DatePickerModal
+        visible={!!dueDateTarget}
+        value={dueDateTarget?.dueDate || ''}
+        onSelect={(k) => { onSetDueDate(dueDateTarget.id, k); setDueDateTarget(null); }}
+        onClose={() => setDueDateTarget(null)}
+      />
     </ScrollView>
   );
 }

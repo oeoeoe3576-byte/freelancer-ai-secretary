@@ -4,8 +4,8 @@ import ModalOverlay from './ModalOverlay';
 import BrandProjectPicker from './BrandProjectPicker';
 import ColorPicker from './ColorPicker';
 import DatePickerModal from './DatePickerModal';
+import EventTypePicker from './EventTypePicker';
 import { theme } from '../utils/theme';
-import { EVENT_TYPES } from '../utils/constants';
 import { keyOf, parseKey, WEEK } from '../utils/date';
 import { notify } from '../utils/alert';
 
@@ -45,9 +45,11 @@ export default function EventFormModal({
   const save = () => {
     if (brands.length === 0) { notify('먼저 브랜드를 추가해주세요.'); return; }
     if (!brandId) { notify('브랜드를 선택해주세요.'); return; }
-    if (!projectId) { notify('프로젝트를 선택해주세요.'); return; }
-    // 제목을 따로 안 적으면 업무 유형을 제목으로 그대로 쓴다.
-    onSave({ ...(initial || {}), brandId, projectId, title: title.trim() || type, date, type });
+    // 프로젝트는 선택 사항. 제목/업무 유형 중 하나만 적어도 서로 비어있는 쪽을 채워준다.
+    const finalTitle = title.trim() || type.trim();
+    const finalType = type.trim() || title.trim();
+    if (!finalTitle) { notify('일정 제목이나 업무 유형을 입력해주세요.'); return; }
+    onSave({ ...(initial || {}), brandId, projectId: projectId || null, title: finalTitle, date, type: finalType });
   };
 
   if (!visible) return null;
@@ -88,13 +90,7 @@ export default function EventFormModal({
         <Text style={styles.dateBtnIcon}>📅</Text>
       </TouchableOpacity>
       <Text style={styles.label}>업무 유형</Text>
-      <View style={styles.typeRow}>
-        {EVENT_TYPES.map(t => (
-          <TouchableOpacity key={t} onPress={() => setType(t)} style={[styles.typeBtn, type === t && styles.typeOn]}>
-            <Text style={[styles.typeText, type === t && styles.typeTextOn]}>{t}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <EventTypePicker value={type} onChange={setType} />
 
       <TouchableOpacity style={styles.primary} onPress={save}>
         <Text style={styles.primaryText}>{mode === 'edit' ? '저장' : '일정 추가'}</Text>
@@ -123,11 +119,6 @@ const styles = StyleSheet.create({
   dateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.sm, padding: 12, marginBottom: 4 },
   dateBtnText: { fontSize: 14, color: theme.text, fontWeight: '600' },
   dateBtnIcon: { fontSize: 14 },
-  typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  typeBtn: { paddingHorizontal: 13, paddingVertical: 9, backgroundColor: '#F3F4F6', borderRadius: 10 },
-  typeOn: { backgroundColor: theme.text },
-  typeText: { fontSize: 13, color: theme.textSub, fontWeight: '600' },
-  typeTextOn: { color: '#fff', fontWeight: '800' },
   primary: { backgroundColor: theme.primary, padding: 14, borderRadius: theme.radius.md, alignItems: 'center', marginTop: 16 },
   primaryText: { color: '#fff', fontWeight: '800' },
   cancel: { alignItems: 'center', padding: 12, marginTop: 2 },

@@ -43,7 +43,7 @@ export default function BrandProjectPicker({
 
       {brandId ? (
         <>
-          <Text style={styles.label}>프로젝트</Text>
+          <Text style={styles.label}>프로젝트 (선택 사항)</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
             <View style={styles.chipRow}>
               <TouchableOpacity onPress={() => onAddProject(brandId)} style={[styles.chip, styles.addChip]}>
@@ -52,14 +52,18 @@ export default function BrandProjectPicker({
               {brandProjects.map(p => {
                 const on = p.id === projectId;
                 return (
-                  <TouchableOpacity key={p.id} onPress={() => onChangeProject(p.id)} style={[styles.chip, on && styles.chipOnPlain]}>
+                  <TouchableOpacity key={p.id} onPress={() => onChangeProject(on ? '' : p.id)} style={[styles.chip, on && styles.chipOnPlain]}>
                     <Text style={[styles.chipText, on && { color: theme.text, fontWeight: '800' }]}>{p.name}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
           </ScrollView>
-          {brandProjects.length === 0 && <Text style={styles.hint}>이 브랜드에 프로젝트가 없습니다. 새 프로젝트를 추가해주세요.</Text>}
+          <Text style={styles.hint}>
+            {brandProjects.length === 0
+              ? '이 브랜드에 프로젝트가 없어요. 정산 금액을 따로 관리하고 싶을 때만 추가하면 돼요.'
+              : '정산 금액을 프로젝트별로 따로 관리하고 싶을 때만 골라주세요. 안 골라도 일정은 등록돼요.'}
+          </Text>
         </>
       ) : (
         <Text style={styles.hint}>먼저 브랜드를 선택하거나 추가해주세요.</Text>

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
-import { EVENT_TYPES } from '../utils/constants';
 import { keyOf, parseKey, WEEK } from '../utils/date';
 import { notify } from '../utils/alert';
 import BrandProjectPicker from '../components/BrandProjectPicker';
 import PasteExtractSection from '../components/PasteExtractSection';
 import DatePickerModal from '../components/DatePickerModal';
+import EventTypePicker from '../components/EventTypePicker';
 
 // 일정 추가 탭: 팝업 없이 항상 열려 있는 빠른 등록 화면 + 붙여넣기 자동추출.
 export default function AddScreen({ brands, projects, onAddBrand, onAddProject, onDeleteBrand, onCreateEvent, onExtract }) {
@@ -28,10 +28,12 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
   const submit = () => {
     if (brands.length === 0) { notify('먼저 브랜드를 추가해주세요.'); return; }
     if (!brandId) { notify('브랜드를 선택해주세요.'); return; }
-    if (!projectId) { notify('프로젝트를 선택해주세요.'); return; }
-    // 제목을 따로 안 적으면 업무 유형("협찬", "촬영" 등)을 제목으로 그대로 쓴다.
-    const finalTitle = title.trim() || type;
-    onCreateEvent({ brandId, projectId, title: finalTitle, date, type });
+    // 프로젝트는 선택 사항 — 안 골라도 브랜드만으로 일정을 등록할 수 있다.
+    // 제목/업무 유형 중 하나만 적어도 서로 비어있는 쪽을 채워준다.
+    const finalTitle = title.trim() || type.trim();
+    const finalType = type.trim() || title.trim();
+    if (!finalTitle) { notify('일정 제목이나 업무 유형을 입력해주세요.'); return; }
+    onCreateEvent({ brandId, projectId: projectId || null, title: finalTitle, date, type: finalType });
     notify('일정 추가 완료', `${finalTitle} · ${date}`);
     setTitle('');
     setDate(keyOf(new Date()));
@@ -63,13 +65,7 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
           <Text style={styles.dateBtnIcon}>📅</Text>
         </TouchableOpacity>
         <Text style={styles.label}>업무 유형</Text>
-        <View style={styles.typeRow}>
-          {EVENT_TYPES.map(t => (
-            <TouchableOpacity key={t} onPress={() => setType(t)} style={[styles.typeBtn, type === t && styles.typeOn]}>
-              <Text style={[styles.typeText, type === t && styles.typeTextOn]}>{t}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <EventTypePicker value={type} onChange={setType} />
         <TouchableOpacity style={styles.primary} onPress={submit}>
           <Text style={styles.primaryText}>일정 추가</Text>
         </TouchableOpacity>
@@ -104,11 +100,6 @@ const styles = StyleSheet.create({
   dateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.sm, padding: 12, marginBottom: 4 },
   dateBtnText: { fontSize: 14, color: theme.text, fontWeight: '600' },
   dateBtnIcon: { fontSize: 14 },
-  typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  typeBtn: { paddingHorizontal: 13, paddingVertical: 9, backgroundColor: '#F6F1EC', borderRadius: theme.radius.pill },
-  typeOn: { backgroundColor: theme.text },
-  typeText: { fontSize: 13, color: theme.textSub, fontWeight: '600' },
-  typeTextOn: { color: '#fff', fontWeight: '800' },
   primary: { backgroundColor: theme.primary, padding: 14, borderRadius: theme.radius.pill, alignItems: 'center', marginTop: 16 },
   primaryText: { color: '#fff', fontWeight: '800' },
 });
