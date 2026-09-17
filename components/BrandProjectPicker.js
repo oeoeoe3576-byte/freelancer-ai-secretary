@@ -3,11 +3,13 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 import { theme } from '../utils/theme';
 import { hexToRgba } from '../utils/colors';
 
-// 브랜드 선택 -> 해당 브랜드의 프로젝트만 선택 가능.
+// 브랜드 선택 -> 해당 브랜드의 프로젝트만 선택 가능(정산 금액을 따로 관리하고 싶을 때만 쓰는 선택 사항).
 // '+ 새로 추가' 칩은 맨 앞에 고정한다 — 브랜드/프로젝트가 계속 늘어나도 스크롤 안 해도 바로 보이게.
+// showProject=false면 프로젝트 선택 UI 자체를 아예 숨긴다(빠른 일정 추가 화면처럼 매번 프로젝트를 고민하게 만들고 싶지 않을 때).
 export default function BrandProjectPicker({
   brands, projects, brandId, projectId,
   onChangeBrand, onChangeProject, onAddBrand, onAddProject, onDeleteBrand,
+  showProject = true,
 }) {
   const brandProjects = projects.filter(p => p.brandId === brandId);
 
@@ -41,7 +43,9 @@ export default function BrandProjectPicker({
         </View>
       </ScrollView>
 
-      {brandId ? (
+      {!brandId && <Text style={styles.hint}>먼저 브랜드를 선택하거나 추가해주세요.</Text>}
+
+      {brandId && showProject && (
         <>
           <Text style={styles.label}>프로젝트 (선택 사항)</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
@@ -65,8 +69,6 @@ export default function BrandProjectPicker({
               : '정산 금액을 프로젝트별로 따로 관리하고 싶을 때만 골라주세요. 안 골라도 일정은 등록돼요.'}
           </Text>
         </>
-      ) : (
-        <Text style={styles.hint}>먼저 브랜드를 선택하거나 추가해주세요.</Text>
       )}
     </View>
   );

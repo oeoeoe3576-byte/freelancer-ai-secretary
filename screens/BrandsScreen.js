@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import AppHeader from '../components/AppHeader';
 import BrandCard from '../components/BrandCard';
+import PullToRefreshScrollView from '../components/PullToRefreshScrollView';
 
-export default function BrandsScreen({ brands, projects, events, onBack, onOpenBrand, onEditBrand, onAddBrand }) {
+export default function BrandsScreen({ brands, projects, events, onBack, onOpenBrand, onEditBrand, onAddBrand, onRefresh }) {
   const stats = useMemo(() => {
     const map = new Map();
     for (const b of brands) map.set(b.id, { projectCount: 0, eventCount: 0 });
@@ -14,7 +15,7 @@ export default function BrandsScreen({ brands, projects, events, onBack, onOpenB
   }, [brands, projects, events]);
 
   return (
-    <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
+    <PullToRefreshScrollView onRefresh={onRefresh} contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
       <AppHeader
         title="브랜드 관리"
         onBack={onBack}
@@ -39,7 +40,7 @@ export default function BrandsScreen({ brands, projects, events, onBack, onOpenB
           })}
         </View>
       )}
-    </ScrollView>
+    </PullToRefreshScrollView>
   );
 }
 

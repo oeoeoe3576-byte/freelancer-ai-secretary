@@ -67,6 +67,7 @@ export default function EventFormModal({
         onAddBrand={() => onAddBrand((b, p) => { setBrandId(b.id); setProjectId(p.id); })}
         onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
         onDeleteBrand={deleteBrand}
+        showProject={mode === 'edit' || !!initial?.projectId}
       />
 
       {selectedBrand && (

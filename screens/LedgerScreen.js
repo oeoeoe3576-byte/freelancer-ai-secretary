@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import { formatWon } from '../utils/ledger';
 import LedgerItem from '../components/LedgerItem';
 import DatePickerModal from '../components/DatePickerModal';
+import PullToRefreshScrollView from '../components/PullToRefreshScrollView';
 
 // 가계부 탭: 금액이 설정된 프로젝트를 한눈에 모아 정산 여부를 관리한다.
 // 정산 완료/취소 토글은 실수 방지를 위해 프로젝트 상세 화면에서만 한다.
 // 정산 예정일은 자주 놓치는 정보라 목록에서 바로 설정/수정할 수 있게 한다.
-export default function LedgerScreen({ projects, brands, onOpenProject, onOpenBrands, onSetDueDate }) {
+export default function LedgerScreen({ projects, brands, onOpenProject, onOpenBrands, onSetDueDate, onRefresh }) {
   const [dueDateTarget, setDueDateTarget] = useState(null);
   const priced = useMemo(
     () => projects.filter(p => Number(p.amount) > 0).sort((a, b) => Number(!!a.settled) - Number(!!b.settled) || (b.createdAt || 0) - (a.createdAt || 0)),
@@ -24,7 +25,7 @@ export default function LedgerScreen({ projects, brands, onOpenProject, onOpenBr
   }, [priced]);
 
   return (
-    <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
+    <PullToRefreshScrollView onRefresh={onRefresh} contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
       <Text style={styles.h1}>💰 가계부</Text>
       <Text style={styles.sub}>프로젝트별 정산 금액과 정산 여부를 관리해요.</Text>
 
@@ -65,7 +66,7 @@ export default function LedgerScreen({ projects, brands, onOpenProject, onOpenBr
         onSelect={(k) => { onSetDueDate(dueDateTarget.id, k); setDueDateTarget(null); }}
         onClose={() => setDueDateTarget(null)}
       />
-    </ScrollView>
+    </PullToRefreshScrollView>
   );
 }
 

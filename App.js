@@ -55,6 +55,14 @@ export default function App() {
     });
   }, []);
 
+  // 화면을 아래로 당겨서 새로고침하면 저장된 데이터를 다시 불러온다(다른 탭/기기에서 바뀐 걸 반영).
+  const refreshFromStorage = async () => {
+    const d = await loadData();
+    setBrands(d.brands);
+    setProjects(d.projects);
+    setEvents(d.events);
+  };
+
   useEffect(() => {
     if (!loaded) return;
     saveData({ brands, projects, events });
@@ -268,6 +276,7 @@ export default function App() {
         enrichedEvents={enrichedEvents}
         onOpenEvent={setViewEventId}
         onAddEvent={(date) => openAddEvent({ date })}
+        onRefresh={refreshFromStorage}
       />
     );
   } else if (activeTab === 'add') {
@@ -279,6 +288,7 @@ export default function App() {
         onDeleteBrand={(brand, onDeleted) => confirmDeleteBrand(brand, { onDeleted })}
         onCreateEvent={saveEventForm}
         onExtract={onExtractEvents}
+        onRefresh={refreshFromStorage}
       />
     );
   } else if (activeTab === 'ledger') {
@@ -288,6 +298,7 @@ export default function App() {
         onOpenProject={openProjectDetail}
         onOpenBrands={openBrands}
         onSetDueDate={updateProjectDueDate}
+        onRefresh={refreshFromStorage}
       />
     );
   } else if (activeTab === 'brands') {
@@ -297,6 +308,7 @@ export default function App() {
         onOpenBrand={openBrandDetail}
         onEditBrand={openEditBrand}
         onAddBrand={() => openAddBrand()}
+        onRefresh={refreshFromStorage}
       />
     );
   } else {
@@ -307,6 +319,7 @@ export default function App() {
         onOpenBrands={openBrands}
         onOpenBrand={openBrandDetail}
         onAddBrandQuick={openAddBrand}
+        onRefresh={refreshFromStorage}
       />
     );
   }

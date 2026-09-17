@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import { keyOf, parseKey, WEEK } from '../utils/date';
 import { notify } from '../utils/alert';
@@ -7,9 +7,10 @@ import BrandProjectPicker from '../components/BrandProjectPicker';
 import PasteExtractSection from '../components/PasteExtractSection';
 import DatePickerModal from '../components/DatePickerModal';
 import EventTypePicker from '../components/EventTypePicker';
+import PullToRefreshScrollView from '../components/PullToRefreshScrollView';
 
 // 일정 추가 탭: 팝업 없이 항상 열려 있는 빠른 등록 화면 + 붙여넣기 자동추출.
-export default function AddScreen({ brands, projects, onAddBrand, onAddProject, onDeleteBrand, onCreateEvent, onExtract }) {
+export default function AddScreen({ brands, projects, onAddBrand, onAddProject, onDeleteBrand, onCreateEvent, onExtract, onRefresh }) {
   const [brandId, setBrandId] = useState('');
   const [projectId, setProjectId] = useState('');
   const [title, setTitle] = useState('');
@@ -41,7 +42,7 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
+    <PullToRefreshScrollView onRefresh={onRefresh} contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
       <Text style={styles.h1}>➕ 일정 추가</Text>
 
       <View style={styles.card}>
@@ -56,6 +57,7 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
           onAddBrand={() => onAddBrand((b, p) => { setBrandId(b.id); setProjectId(p.id); })}
           onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
           onDeleteBrand={deleteBrand}
+          showProject={false}
         />
         <Text style={styles.label}>일정 제목 (비우면 업무 유형으로 저장)</Text>
         <TextInput value={title} onChangeText={setTitle} placeholder="예) 기획안 제출" placeholderTextColor={theme.textFaint} style={styles.input} />
@@ -86,7 +88,7 @@ export default function AddScreen({ brands, projects, onAddBrand, onAddProject, 
         onSelect={(k) => { setDate(k); setDateOpen(false); }}
         onClose={() => setDateOpen(false)}
       />
-    </ScrollView>
+    </PullToRefreshScrollView>
   );
 }
 

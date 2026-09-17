@@ -1,14 +1,15 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import { keyOf, daysBetween } from '../utils/date';
 import EventListItem from '../components/EventListItem';
 import BrandCard from '../components/BrandCard';
+import PullToRefreshScrollView from '../components/PullToRefreshScrollView';
 
 // 홈: 한눈에 보이는 요약만. 자세한 내용(달력/추가/가계부)은 하단 탭에서 각각 확인한다.
 export default function HomeScreen({
   brands, projects, enrichedEvents,
-  onOpenEvent, onOpenBrands, onOpenBrand, onAddBrandQuick,
+  onOpenEvent, onOpenBrands, onOpenBrand, onAddBrandQuick, onRefresh,
 }) {
   const todayKey = keyOf(new Date());
 
@@ -44,7 +45,7 @@ export default function HomeScreen({
   }, [brands, projects, enrichedEvents]);
 
   return (
-    <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
+    <PullToRefreshScrollView onRefresh={onRefresh} contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
       <View style={styles.headerRow}>
         <Text style={styles.kicker}>FREELANCER SECRETARY</Text>
         <Text style={styles.h1}>안녕하세요 👋</Text>
@@ -115,7 +116,7 @@ export default function HomeScreen({
           </TouchableOpacity>
         )}
       </View>
-    </ScrollView>
+    </PullToRefreshScrollView>
   );
 }
 

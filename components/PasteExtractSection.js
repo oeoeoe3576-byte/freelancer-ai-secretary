@@ -124,6 +124,7 @@ export default function PasteExtractSection({ brands, projects, onAddBrand, onAd
             onAddBrand={() => onAddBrand((b, p) => { setBrandId(b.id); setProjectId(p.id); })}
             onAddProject={(bid) => onAddProject(bid, p => setProjectId(p.id))}
             onDeleteBrand={deleteBrand}
+            showProject={false}
           />
           <TouchableOpacity style={styles.photoBtn} onPress={startPhotoOcr} disabled={ocrLoading}>
             {ocrLoading ? (
