@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../utils/theme';
 import { keyOf, daysBetween } from '../utils/date';
 import EventListItem from '../components/EventListItem';
